@@ -365,3 +365,41 @@
     overflow: hidden;
   }
 }
+
+/* === S6a scoring-table === */
+@layer components {
+  .league-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-small);
+    font-variant-numeric: tabular-nums;
+  }
+  .league-table th {
+    padding: 4px 4px 8px;
+    text-align: right;
+    font-size: var(--text-caption);
+    font-weight: 600;
+    color: var(--color-muted-on-dark);
+  }
+  .league-table td {
+    padding: 9px 4px;
+    text-align: right;
+    white-space: nowrap;
+    border-top: 1px solid var(--color-line-on-dark);
+  }
+  .league-table th:nth-child(-n + 2),
+  .league-table td:nth-child(-n + 2) {
+    text-align: left;
+  }
+  .league-table tr.league-me td {
+    background: var(--color-lime);
+    color: var(--color-ink);
+    border-top-color: transparent;
+  }
+  .league-table tr.league-me td:first-child {
+    border-radius: var(--radius-input) 0 0 var(--radius-input);
+  }
+  .league-table tr.league-me td:last-child {
+    border-radius: 0 var(--radius-input) var(--radius-input) 0;
+  }
+}
