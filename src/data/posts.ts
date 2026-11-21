@@ -25,6 +25,10 @@ const RULE_COPY: Record<'too_late' | 'not_open' | 'already_posted' | 'not_player
 
 const NETWORK_COPY = 'Could not upload your fit. Check your connection, then try again.'
 
+function isAlreadyUploaded(err: { message: string; statusCode?: string | number }): boolean {
+  return String(err.statusCode) === '409' || /exists|duplicate/i.test(err.message)
+}
+
 /** Uploads the media to `${uid}/${battleId}.jpg|webm`, then records it with the submit_post RPC. */
 export async function submitPost(battleId: string, blob: Blob, type: 'photo' | 'video'): Promise<void> {
   let uid: string
@@ -35,12 +39,13 @@ export async function submitPost(battleId: string, blob: Blob, type: 'photo' | '
   }
 
   const path = `${uid}/${battleId}.${type === 'photo' ? 'jpg' : 'webm'}`
-  // upsert, so a retry after a failed RPC call does not trip over the file that already uploaded.
+  // No overwrite: a posted photo can't be replaced. If the file is already there (a retry after a failed
+  // RPC call), carry on to submit_post and let it decide.
   const { error: uploadError } = await supabase.storage.from('outfits').upload(path, blob, {
     contentType: blob.type || (type === 'photo' ? 'image/jpeg' : 'video/webm'),
-    upsert: true,
+    upsert: false,
   })
-  if (uploadError) throw new SubmitError('upload', NETWORK_COPY, true)
+  if (uploadError && !isAlreadyUploaded(uploadError)) throw new SubmitError('upload', NETWORK_COPY, true)
 
   const { error } = await supabase.rpc('submit_post', { p_battle: battleId, p_path: path, p_type: type })
   if (error) {

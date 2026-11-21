@@ -23,14 +23,17 @@ export function Camera({ onCapture, onCancel }: { onCapture(blob: Blob): void; o
   useEffect(() => {
     let cancelled = false
     setStatus('starting')
+    // Release the current camera first: many phones only allow one open camera at a time.
+    stop()
+    if (videoRef.current) videoRef.current.srcObject = null
     ;(async () => {
       try {
         const stream = await openCamera(facing)
         if (cancelled) {
+          // Unmounted, or flipped again, while the camera was opening: don't keep the late stream.
           stream.getTracks().forEach((t) => t.stop())
           return
         }
-        stop()
         streamRef.current = stream
         setStatus('live')
       } catch (e) {
@@ -62,6 +65,16 @@ export function Camera({ onCapture, onCancel }: { onCapture(blob: Blob): void; o
     return () => URL.revokeObjectURL(shot.url)
   }, [shot])
 
+  // Escape cancels, when the host gave us a way to.
+  useEffect(() => {
+    if (!onCancel) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onCancel()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onCancel])
+
   async function takePhoto() {
     if (!videoRef.current) return
     try {
@@ -74,7 +87,7 @@ export function Camera({ onCapture, onCancel }: { onCapture(blob: Blob): void; o
   }
 
   return (
-    <div className="cam-screen set-capture">
+    <div className="cam-screen set-capture" role="dialog" aria-modal="true" aria-label="Post your fit">
       <div className="app-col flex min-h-0 flex-1 flex-col gap-2.5">
         <div className="flex items-center justify-between">
           <h2 className="h-tile">Post your fit</h2>

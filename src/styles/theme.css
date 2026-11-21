@@ -381,7 +381,7 @@
   border: 0;
   border-radius: 50%;
   background: var(--color-pink);
-  box-shadow: 0 0 0 5px var(--color-ink), 0 0 0 9px var(--color-white);
+  box-shadow: 0 0 0 5px var(--color-violet), 0 0 0 9px var(--color-white);
   cursor: pointer;
 }
 .cam-shutter:disabled {

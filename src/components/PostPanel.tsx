@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { postedOf } from '../data/mappers'
 import { getPlayerNames, submitPost, SubmitError } from '../data/posts'
 import { battlePhase } from '../lib/phase'
@@ -38,6 +38,7 @@ export function PostPanel({ view, viewerId, onPosted }: { view: BattleView; view
   const [blob, setBlob] = useState<Blob | null>(null)
   const [error, setError] = useState<{ message: string; retryable: boolean } | null>(null)
   const [justPosted, setJustPosted] = useState(false)
+  const busy = useRef(false)
   const [names, setNames] = useState<Record<string, string>>({})
 
   useEffect(() => {
@@ -66,6 +67,16 @@ export function PostPanel({ view, viewerId, onPosted }: { view: BattleView; view
   }
 
   async function upload(photo: Blob) {
+    if (busy.current) return
+    busy.current = true
+    try {
+      await doUpload(photo)
+    } finally {
+      busy.current = false
+    }
+  }
+
+  async function doUpload(photo: Blob) {
     setBlob(photo)
     setStep('uploading')
     setError(null)
