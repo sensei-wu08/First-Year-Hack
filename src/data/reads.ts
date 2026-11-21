@@ -74,8 +74,9 @@ function toView(r: Row, tallies: Map<string, Tally>): BattleView {
 }
 
 export async function getGroup(id: string): Promise<Group> {
-  const { data, error } = await supabase.from('groups').select('*').eq('id', id).single()
+  const { data, error } = await supabase.from('groups').select('*').eq('id', id).maybeSingle()
   fail(error)
+  if (!data) throw new Error('not_member')
   return toGroup(data)
 }
 

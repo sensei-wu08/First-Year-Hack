@@ -21,6 +21,20 @@ export function ensureSession(): Promise<string> {
   return pending
 }
 
+/** True once `loading` has lasted `ms` (default 8 s), so screens can add a "still connecting" hint. */
+export function useSlowLoading(loading: boolean, ms = 8000): boolean {
+  const [slow, setSlow] = useState(false)
+  useEffect(() => {
+    if (!loading) {
+      setSlow(false)
+      return
+    }
+    const t = setTimeout(() => setSlow(true), ms)
+    return () => clearTimeout(t)
+  }, [loading, ms])
+  return slow
+}
+
 export function useProfile(): { uid: string | null; profile: Member | null; loading: boolean; refresh(): void } {
   const [uid, setUid] = useState<string | null>(null)
   const [profile, setProfile] = useState<Member | null>(null)

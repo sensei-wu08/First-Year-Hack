@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Outlet, useLocation, useOutletContext, useParams } from 'react-router-dom'
+import { Link, Outlet, useLocation, useOutletContext, useParams } from 'react-router-dom'
 import { onGroupLoad } from '../data/lifecycle'
 import { getGroup, listMembers } from '../data/reads'
 import type { Group, Member } from '../lib/types'
@@ -65,7 +65,12 @@ export default function GroupLayout() {
   return (
     <div className={`${set} flex flex-col`}>
       <div className="app-col flex-1">
-        {error ? (
+        {error === 'not_member' ? (
+          <div className="screen">
+            <p className="panel">You're not in this group. Ask for an invite link.</p>
+            <Link to="/" className="btn">Go home</Link>
+          </div>
+        ) : error ? (
           <div className="screen">
             <p className="panel">Couldn't open this group. {error}</p>
             <button className="btn" onClick={() => setTick((t) => t + 1)}>Try again</button>

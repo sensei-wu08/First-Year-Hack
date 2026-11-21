@@ -48,23 +48,40 @@ export default function League() {
 
   useEffect(() => {
     let cancelled = false
+    let inFlight = false
+    let loadedOnce = false
     setError(null)
-    ;(async () => {
+    // Polls every 15 s (skipped while the tab is hidden or a load is pending) so a reveal shows up without a refresh.
+    const load = async () => {
+      if (inFlight) return
+      inFlight = true
       try {
         const season = await currentSeason(group.id)
         const battles = await listBattles(group.id, season?.id ?? null)
         if (cancelled) return
-        const now = new Date()
+        // A just-revealed battle counts even if this phone's clock is behind the server's.
+        const latestClosed = battles.reduce((t, b) => Math.max(t, b.record.closedAt?.getTime() ?? 0), 0)
+        const now = new Date(Math.max(Date.now(), latestClosed))
         // Everyone still in the group, plus anyone who left but has battles in this table.
         const inBattles = new Set(battles.flatMap((b) => [b.record.playerA, b.record.playerB]))
         const tableMembers = members.filter((m) => !m.leftAt || inBattles.has(m.id))
         setData({ rows: leagueTable(tableMembers, battles.map(toFacts), now), label: seasonLabel(season, now) })
+        setError(null)
+        loadedOnce = true
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Something went wrong')
+        // A failed background poll keeps the table on screen.
+        if (!cancelled && !loadedOnce) setError(e instanceof Error ? e.message : 'Something went wrong')
+      } finally {
+        inFlight = false
       }
-    })()
+    }
+    void load()
+    const timer = setInterval(() => {
+      if (!document.hidden) void load()
+    }, 15000)
     return () => {
       cancelled = true
+      clearInterval(timer)
     }
   }, [group.id, members, tick])
 

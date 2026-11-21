@@ -52,7 +52,7 @@ export default function ShareVote() {
   const load = useCallback(() => loadShare(shareCode), [shareCode])
   const { data, error, loaded, reload } = usePoll(
     load,
-    (d) => d === null || d.share.view.tally.votesA !== null || d.share.view.record.voidedAt !== null,
+    (d) => d !== null && (d.share.view.tally.votesA !== null || d.share.view.record.voidedAt !== null),
   )
   const now = useNow(1000)
   const [name, setName] = useState('')

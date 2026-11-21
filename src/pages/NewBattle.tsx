@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useGroupContext } from '../components/GroupLayout'
-import { useProfile } from '../data/auth'
+import { useProfile, useSlowLoading } from '../data/auth'
 import { createCustomBattle, friendlyError } from '../data/groups'
 import { localDateKey } from '../lib/time'
 
@@ -23,6 +23,7 @@ function nextFive(): Date {
 export default function NewBattle() {
   const { group, members, reload } = useGroupContext()
   const { uid, loading } = useProfile()
+  const slow = useSlowLoading(loading)
   const navigate = useNavigate()
   const [playerA, setPlayerA] = useState('')
   const [playerB, setPlayerB] = useState('')
@@ -43,6 +44,7 @@ export default function NewBattle() {
     return (
       <div className="screen">
         <p className="sub">Loading</p>
+        {slow && <p className="sub">Still connecting… check your connection</p>}
       </div>
     )
   }
