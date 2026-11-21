@@ -25,7 +25,7 @@ export function ProfileFields(props: {
         onChange={(e) => props.onName(e.target.value)}
         placeholder="Your name"
         autoComplete="given-name"
-        maxLength={60}
+        maxLength={24}
       />
       <div role="group" aria-label="Pick your emoji" className="grid grid-cols-4 gap-2">
         {EMOJIS.map((e) => (

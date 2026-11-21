@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import LeagueTable, { formatPoints } from '../components/LeagueTable'
 import { useGroupContext } from '../components/GroupLayout'
 import { useProfile } from '../data/auth'
+import { friendlyError } from '../data/groups'
 import { toFacts } from '../data/mappers'
 import { currentSeason, listBattles } from '../data/reads'
-import { localDateKey } from '../lib/time'
+import { localDateKey, shortDate } from '../lib/time'
 import { leagueTable, type TableRow } from '../lib/table'
 import type { Season } from '../lib/types'
 
@@ -14,11 +15,6 @@ function daysBetween(from: string, to: string): number {
     return Date.UTC(y, m - 1, day)
   }
   return Math.round((utc(to) - utc(from)) / 86_400_000)
-}
-
-function shortDate(date: string): string {
-  const [y, m, d] = date.split('-').map(Number)
-  return new Date(y, m - 1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 }
 
 function seasonLabel(season: Season | null, now: Date): string {
@@ -65,12 +61,14 @@ export default function League() {
         // Everyone still in the group, plus anyone who left but has battles in this table.
         const inBattles = new Set(battles.flatMap((b) => [b.record.playerA, b.record.playerB]))
         const tableMembers = members.filter((m) => !m.leftAt || inBattles.has(m.id))
+        // Keep every battle in the facts: unresolved ones must stay visible so Outfit of the Week
+        // waits for the whole week. A brief clock-skew flicker self-corrects on the next 15 s poll.
         setData({ rows: leagueTable(tableMembers, battles.map(toFacts), now), label: seasonLabel(season, now) })
         setError(null)
         loadedOnce = true
       } catch (e) {
         // A failed background poll keeps the table on screen.
-        if (!cancelled && !loadedOnce) setError(e instanceof Error ? e.message : 'Something went wrong')
+        if (!cancelled && !loadedOnce) setError(friendlyError(e, 'Check your connection and try again.'))
       } finally {
         inFlight = false
       }

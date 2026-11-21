@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { InviteQr } from '../components/InviteQr'
@@ -33,15 +33,29 @@ interface Loaded {
   comments: CommentView[]
 }
 
-async function loadBattle(id: string): Promise<Loaded | null> {
+interface GroupCache {
+  groupId: string
+  at: number
+  group: Group
+  members: Member[]
+}
+
+/** The group and its members rarely change, so the 5 s poll reuses them for a minute. */
+const GROUP_TTL_MS = 60_000
+
+async function loadBattle(id: string, cache: { current: GroupCache | null }): Promise<Loaded | null> {
   const uid = await ensureSession()
   const view = await getBattle(id)
   if (!view) return null
+  const groupId = view.record.groupId
+  const cached = cache.current
+  const fresh = cached !== null && cached.groupId === groupId && Date.now() - cached.at < GROUP_TTL_MS
   const [group, members, mine] = await Promise.all([
-    getGroup(view.record.groupId),
-    listMembers(view.record.groupId),
+    fresh ? cached.group : getGroup(groupId),
+    fresh ? cached.members : listMembers(groupId),
     myVote(id),
   ])
+  if (!fresh) cache.current = { groupId, at: Date.now(), group, members }
   // Split counts (and comments) only come back once the battle is closed.
   const closed = view.tally.votesA !== null
   const comments = closed && group.commentsEnabled ? await listComments([id]) : []
@@ -108,7 +122,8 @@ function RevealNow({ battleId, note, onDone }: { battleId: string; note: string 
 
 export default function Battle() {
   const { battleId = '' } = useParams()
-  const load = useCallback(() => loadBattle(battleId), [battleId])
+  const groupCache = useRef<GroupCache | null>(null)
+  const load = useCallback(() => loadBattle(battleId, groupCache), [battleId])
   const { data, error, loaded, reload } = usePoll(
     load,
     (d) => d === null || d.view.tally.votesA !== null || d.view.record.voidedAt !== null,

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import StoryCards, { personalCards } from '../components/StoryCards'
 import { useProfile } from '../data/auth'
+import { friendlyError } from '../data/groups'
 import { loadMonthInputs } from '../data/wrapped'
 import { personalWrapped, type PersonalWrapped as PersonalStats } from '../lib/wrapped'
 
@@ -25,7 +26,7 @@ export default function PersonalWrapped() {
         const groups = await loadMonthInputs(month)
         if (!cancelled) setStats(personalWrapped(uid, month, groups))
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Something went wrong')
+        if (!cancelled) setError(friendlyError(e, 'Check your connection and try again.'))
       }
     })()
     return () => {

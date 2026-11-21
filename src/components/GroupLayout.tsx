@@ -61,6 +61,8 @@ export default function GroupLayout() {
 
   const set = setFor(pathname, groupId)
   const showNav = set !== 'set-wrapped'
+  // The error screens have nothing for the tabs to open, so the nav stays hidden there.
+  const errorScreen = error === 'not_member' || (error !== null && !(ctx && ctx.group.id === groupId))
 
   return (
     <div className={`${set} flex flex-col`}>
@@ -84,7 +86,7 @@ export default function GroupLayout() {
           </div>
         )}
       </div>
-      {showNav && <BottomNav groupId={groupId} />}
+      {showNav && !errorScreen && <BottomNav groupId={groupId} />}
     </div>
   )
 }

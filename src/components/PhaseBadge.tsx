@@ -1,6 +1,6 @@
 import type { Phase } from '../lib/types'
 
-const labels: Record<Phase, string> = {
+export const phaseLabels: Record<Phase, string> = {
   upcoming: 'Upcoming',
   posting: 'Posting',
   voting: 'Voting open',
@@ -13,7 +13,7 @@ export default function PhaseBadge({ phase }: { phase: Phase }) {
   return (
     <span className="pill">
       <span className="pill-dot" aria-hidden="true" />
-      {labels[phase]}
+      {phaseLabels[phase]}
     </span>
   )
 }

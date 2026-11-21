@@ -5,10 +5,10 @@ import { useGroupContext } from '../components/GroupLayout'
 import { InviteQr } from '../components/InviteQr'
 import { useProfile } from '../data/auth'
 import { friendlyError } from '../data/groups'
-import { currentSeason, listSeasons } from '../data/reads'
+import { listSeasons } from '../data/reads'
 import { leaveGroup, redateUpcoming, startSeason, updateGroupSettings } from '../data/seasons'
 import { defaultBattlesPerDay } from '../lib/scheduler'
-import { addDays, atLocalTime, localDateKey, monthKey } from '../lib/time'
+import { addDays, atLocalTime, localDateKey, monthKey, shortDate } from '../lib/time'
 import type { Group, Season } from '../lib/types'
 
 interface Form {
@@ -92,8 +92,9 @@ export default function Settings() {
 
   const loadSeason = useCallback(async () => {
     try {
-      const [current, all] = await Promise.all([currentSeason(group.id), listSeasons(group.id)])
-      setSeason(current)
+      const all = await listSeasons(group.id)
+      // The current season is the one with the highest number.
+      setSeason([...all].sort((a, b) => b.number - a.number)[0] ?? null)
       // Wrapped is only for a season that has finished (ended before today, local date).
       const today = localDateKey(new Date())
       setEndedSeason([...all].filter((s) => s.endsOn < today).sort((a, b) => b.number - a.number)[0] ?? null)
@@ -181,7 +182,7 @@ export default function Settings() {
     setStarting(true)
     setSeasonMsg(null)
     if (startDate < firstStart) {
-      setSeasonMsg({ kind: 'error', text: `Pick ${firstStart} or later. Today's matches have already gone out.` })
+      setSeasonMsg({ kind: 'error', text: `Pick ${shortDate(firstStart)} or later. Today's matches have already gone out.` })
       setStarting(false)
       return
     }
@@ -337,11 +338,11 @@ export default function Settings() {
           <p>No season yet.{isAdmin ? ' Start one below.' : ''}</p>
         ) : seasonActive ? (
           <p>
-            Season {season.number} is running until {season.endsOn}.
+            Season {season.number} is running until {shortDate(season.endsOn)}.
           </p>
         ) : (
           <p>
-            Season {season.number} ended on {season.endsOn}.
+            Season {season.number} ended on {shortDate(season.endsOn)}.
           </p>
         )}
         {isAdmin && (
