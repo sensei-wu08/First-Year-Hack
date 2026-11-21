@@ -7,6 +7,8 @@ import { friendlyError, listMyGroups } from '../data/groups'
 import type { Group } from '../lib/types'
 
 const TILE_COLOURS = ['bg-pink', 'bg-sky', 'bg-mint', 'bg-tangerine', 'bg-lavender']
+/** Invite code of the seeded demo group "The Fit Crew" (set by scripts/seed.ts). */
+const EXAMPLE_CODE = 'fitcrew'
 
 /** Accepts a bare code or a pasted invite link; returns the last path segment after /j/. */
 function extractCode(raw: string): string {
@@ -86,6 +88,15 @@ export default function Home() {
               </li>
             ))}
           </ul>
+        )}
+        {groups !== null && !groups.some((g) => g.inviteCode === EXAMPLE_CODE) && (
+          <Link to={`/j/${EXAMPLE_CODE}`} className="tile bg-lime flex items-center justify-between gap-3 no-underline">
+            <span className="flex flex-col gap-1">
+              <span className="h-tile">See an example group</span>
+              <span className="text-small">The Fit Crew: six weeks of battles, a league table and Wrapped</span>
+            </span>
+            <span className="chip bg-ink text-white shrink-0 whitespace-nowrap" aria-hidden="true">Take a look</span>
+          </Link>
         )}
         <form
           className="tile bg-lavender flex flex-col gap-2.5"
