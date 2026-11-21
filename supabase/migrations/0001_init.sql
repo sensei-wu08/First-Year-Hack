@@ -337,10 +337,13 @@ begin
   if split_part(coalesce(p_path, ''), '/', 1) <> v_uid::text then
     raise exception 'bad_path';
   end if;
-  insert into public.posts (battle_id, profile_id, media_path, media_type)
-  values (p_battle, v_uid, p_path, coalesce(p_type, 'photo'))
-  on conflict (battle_id, profile_id) do update
-    set media_path = excluded.media_path, media_type = excluded.media_type;
+  -- One post per battler, no retake.
+  begin
+    insert into public.posts (battle_id, profile_id, media_path, media_type)
+    values (p_battle, v_uid, p_path, coalesce(p_type, 'photo'));
+  exception when unique_violation then
+    raise exception 'already_posted';
+  end;
 end;
 $$;
 
@@ -364,12 +367,12 @@ begin
   if not public.is_member(b.group_id) and not g.allow_share_voting then
     raise exception 'not_allowed';
   end if;
-  if (select count(*) from public.posts p where p.battle_id = p_battle) < 2 then
-    raise exception 'not_open';
-  end if;
   if b.voided_at is not null
      or now() >= least(b.results_at, coalesce(b.closed_at, b.results_at)) then
     raise exception 'closed';
+  end if;
+  if (select count(*) from public.posts p where p.battle_id = p_battle) < 2 then
+    raise exception 'not_open';
   end if;
   if exists (select 1 from public.votes v where v.battle_id = p_battle and v.voter_id = v_uid) then
     raise exception 'already_voted';
