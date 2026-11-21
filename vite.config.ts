@@ -18,8 +18,8 @@ export default defineConfig({
         description: '1v1 your friends in a fashion battle. Every day. All season.',
         display: 'standalone',
         start_url: '/',
-        theme_color: '#5B34F2',
-        background_color: '#5B34F2',
+        theme_color: '#FFFFFF',
+        background_color: '#FFFFFF',
         icons: [
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },

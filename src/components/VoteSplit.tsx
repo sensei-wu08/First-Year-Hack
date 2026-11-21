@@ -119,12 +119,12 @@ export function VoteSplit({
       />
 
       {voted ? (
-        <div className="tile bg-white" role="status">
+        <div className="tile" role="status">
           <p className="h-tile">{backed ? `You voted for ${backed.name}` : "You've already voted"}</p>
           <p className="sub mt-1">{votesLabel(view.tally.total)}. Results come when voting closes.</p>
         </div>
       ) : block !== 'ok' ? (
-        <div className="tile bg-white" role="status">
+        <div className="tile" role="status">
           <p className="h-tile">{BLOCK_MESSAGES[block]}</p>
           {view.tally.total > 0 && <p className="sub mt-1">{votesLabel(view.tally.total)}</p>}
         </div>
@@ -142,7 +142,7 @@ export function VoteSplit({
           )}
           {extra}
           {error && (
-            <p className="tile bg-white" role="alert">
+            <p className="tile" role="alert">
               {error}
             </p>
           )}

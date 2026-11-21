@@ -17,6 +17,13 @@ const DAY_MS = 86_400_000
 
 const hhmm = (d: Date) => d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
 const dayLabel = (d: Date) => d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+const longDate = (d: Date) => d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })
+
+/** Mon to Sun of the week containing `now`, for the display-only week strip. */
+function weekOf(now: Date): Date[] {
+  const mondayOffset = (now.getDay() + 6) % 7
+  return Array.from({ length: 7 }, (_, i) => new Date(now.getFullYear(), now.getMonth(), now.getDate() - mondayOffset + i))
+}
 
 interface Row {
   view: BattleView
@@ -61,7 +68,9 @@ function Fixture({ row, members, viewerId }: { row: Row; members: Map<string, Me
   const b = members.get(view.record.playerB)
   const posted = postedOf(view)
   return (
-    <div className="flex flex-col gap-2.5">
+    <div className="tile bg-lavender flex flex-col gap-2.5">
+      <span className="sticker-sparkle absolute right-3 top-3 h-12 w-12" aria-hidden="true" />
+      <h2 className="h-tile">Today's battle</h2>
       <Link
         to={`/b/${view.record.id}`}
         className="versus block"
@@ -82,7 +91,7 @@ function Fixture({ row, members, viewerId }: { row: Row; members: Map<string, Me
           </span>
         </span>
       </div>
-      <Link to={`/b/${view.record.id}`} className="btn">{ctaLabel(row, viewerId)}</Link>
+      <Link to={`/b/${view.record.id}`} className="btn btn-hero">{ctaLabel(row, viewerId)}</Link>
     </div>
   )
 }
@@ -115,7 +124,7 @@ function PastRow({ row, members }: { row: Row; members: Map<string, Member> }) {
 
 export default function Today() {
   const { group, members, reload } = useGroupContext()
-  const { uid } = useProfile()
+  const { uid, profile } = useProfile()
   const [battles, setBattles] = useState<BattleView[] | null>(null)
   const [seasons, setSeasons] = useState<Season[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -152,6 +161,7 @@ export default function Today() {
 
   const memberMap = new Map(members.map((m) => [m.id, m]))
   const today = localDateKey(now)
+  const greetName = profile?.name ?? members.find((m) => m.id === uid)?.name ?? ''
   const isAdmin = uid !== null && uid === group.adminId
 
   const rows: Row[] = (battles ?? []).map((view) => ({
@@ -177,12 +187,23 @@ export default function Today() {
 
   return (
     <div className="screen pb-2">
-      <header className="flex items-center justify-between gap-3">
-        <h1 className="h-display">Today</h1>
-        <span className="chip bg-lime">
-          {liveSeason && seasonDay ? `Season ${liveSeason.number} · day ${seasonDay}` : group.name}
-        </span>
+      <header className="hello-row">
+        <span className="hello-badge" aria-hidden="true">{(greetName || '?').charAt(0).toUpperCase()}</span>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <h1 className="hello-name">{greetName ? `Hello, ${greetName}` : 'Hello'}</h1>
+          <span className="sub text-small truncate">{group.name} · {longDate(now)}</span>
+        </div>
+        {liveSeason && seasonDay && <span className="chip bg-lime">{`Season ${liveSeason.number} · day ${seasonDay}`}</span>}
       </header>
+
+      <ol className="week-strip" aria-label="This week">
+        {weekOf(now).map((d) => (
+          <li key={d.getTime()} className={`week-day${localDateKey(d) === today ? ' is-today' : ''}`} aria-current={localDateKey(d) === today ? 'date' : undefined}>
+            <small>{d.toLocaleDateString('en-GB', { weekday: 'short' })}</small>
+            <b>{d.getDate()}</b>
+          </li>
+        ))}
+      </ol>
 
       {endedSeason && (
         <Link to={`/g/${group.id}/wrapped/${endedSeason.id}`} className="tile tile-sm bg-lime flex items-center justify-between gap-3 no-underline">

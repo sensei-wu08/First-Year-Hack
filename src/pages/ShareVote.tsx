@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useParams } from 'react-router-dom'
+import { ReactionRow } from '../components/ReactionRow'
 import { ResultsReveal } from '../components/ResultsReveal'
 import { FitSide, VersusSeam } from '../components/VersusSeam'
 import { VoteSplit } from '../components/VoteSplit'
@@ -69,7 +70,7 @@ export default function ShareVote() {
   if (!data) {
     return (
       <Frame>
-        <div className="tile bg-white">
+        <div className="tile">
           <p className="h-tile">{error ? "Couldn't open this battle" : "This battle isn't open to public voting."}</p>
           {error && <p className="sub mt-1">Couldn't reach Fits. Check your connection and tap Try again.</p>}
         </div>
@@ -197,7 +198,7 @@ export default function ShareVote() {
     )
   } else {
     body = (
-      <div className="tile bg-white">
+      <div className="tile">
         <p className="h-tile">This battle was voided</p>
       </div>
     )
@@ -213,6 +214,9 @@ export default function ShareVote() {
         </h1>
       )}
       {body}
+      {(phase === 'voting' || phase === 'awaiting_results' || phase === 'results') && (
+        <ReactionRow battleId={record.id} posted={posted} names={[players[0].name, players[1].name]} />
+      )}
     </Frame>
   )
 }

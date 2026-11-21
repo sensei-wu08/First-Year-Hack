@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 import { InviteQr } from '../components/InviteQr'
 import PhaseBadge from '../components/PhaseBadge'
 import { PostPanel } from '../components/PostPanel'
+import { ReactionRow } from '../components/ReactionRow'
 import { ResultsReveal } from '../components/ResultsReveal'
 import { FitSide, VersusSeam } from '../components/VersusSeam'
 import { VoteSplit } from '../components/VoteSplit'
@@ -104,7 +105,7 @@ function RevealNow({ battleId, note, onDone }: { battleId: string; note: string 
     )
   }
   return (
-    <div className="tile bg-white" role="alertdialog" aria-label="Confirm reveal">
+    <div className="tile" role="alertdialog" aria-label="Confirm reveal">
       <p className="h-tile">Reveal results now for everyone?</p>
       <p className="sub mt-1">Voting closes straight away and the points are counted. {note}</p>
       {error && <p role="alert">{error}</p>}
@@ -140,7 +141,7 @@ export default function Battle() {
   if (!data) {
     return (
       <Frame>
-        <div className="tile bg-white">
+        <div className="tile">
           <p className="h-tile">{error ? "Couldn't open this battle" : "We can't find this battle"}</p>
           {error && <p className="sub mt-1">Couldn't reach Fits. Check your connection and tap Try again.</p>}
         </div>
@@ -246,7 +247,7 @@ export default function Battle() {
     )
   } else {
     body = (
-      <div className="tile bg-white">
+      <div className="tile">
         <p className="h-tile">This battle was voided</p>
         <p className="sub mt-1">One of the players left the group before it finished.</p>
       </div>
@@ -279,6 +280,9 @@ export default function Battle() {
       )}
 
       {body}
+      {(phase === 'voting' || phase === 'awaiting_results' || phase === 'results') && (
+        <ReactionRow battleId={battleId} posted={posted} names={[players[0].name, players[1].name]} />
+      )}
 
       {canRevealNow && <RevealNow battleId={battleId} note={noteFor} onDone={() => void reload()} />}
       {isAdmin && group.allowShareVoting && phase !== 'void' && (

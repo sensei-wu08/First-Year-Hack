@@ -8,7 +8,9 @@ type Status = 'starting' | 'live' | 'error'
 export function Camera({ onCapture, onCancel }: { onCapture(blob: Blob): void; onCancel?(): void }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
-  const [facing, setFacing] = useState<Facing>('user')
+  // Rear camera by default (a friend snaps your fit); Flip switches to the selfie camera.
+  // facingMode is a preference, so devices with one camera (laptops) still open it.
+  const [facing, setFacing] = useState<Facing>('environment')
   const [attempt, setAttempt] = useState(0)
   const [status, setStatus] = useState<Status>('starting')
   const [error, setError] = useState('')

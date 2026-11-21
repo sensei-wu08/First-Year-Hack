@@ -13,6 +13,13 @@
   --color-mint: #5BE3B0;
   --color-lavender: #B9A4FF;
   --color-down: #FF5C5C;
+  --color-down-text: #B3261E; /* readable red for text on the white canvas (down fails there) */
+
+  /* Canvas (ui-v3): the white app background, ink text on it, and the soft lavender chip surface */
+  --color-canvas: #FFFFFF;
+  --color-on-canvas: var(--color-ink);
+  --color-on-canvas-muted: rgb(23 11 59 / 0.72);
+  --color-canvas-chip: #F1ECFF;
 
   /* Text and lines: on-light (ink based) and on-dark (white based) */
   --color-muted: rgb(23 11 59 / 0.72);
@@ -62,7 +69,7 @@
 
 @layer base {
   body {
-    @apply bg-violet text-white font-body;
+    @apply bg-canvas text-on-canvas font-body;
     font-size: 15px;
     line-height: 1.45;
   }
@@ -80,14 +87,19 @@
   a:focus-visible,
   input:focus-visible,
   textarea:focus-visible {
-    outline: 3px solid var(--color-lime);
+    outline: 3px solid var(--color-violet);
     outline-offset: 2px;
+  }
+  .set-capture button:focus-visible,
+  .set-capture a:focus-visible,
+  .nav-pill a:focus-visible {
+    outline-color: var(--color-lime);
   }
 }
 
 /* Component classes live in the components layer so Tailwind utilities (bg-*, text-*) can override them. */
 @layer components {
-  /* ---------- Sets: every screen is the violet canvas; capture is ink ---------- */
+  /* ---------- Sets: every screen is the white canvas; capture is ink ---------- */
   .set-today,
   .set-vote,
   .set-results,
@@ -99,12 +111,23 @@
   .set-wrapped {
     position: relative;
     min-height: 100dvh;
-    background: var(--color-violet);
-    color: var(--color-white);
+    background: var(--color-canvas);
+    color: var(--color-on-canvas);
   }
   .set-capture {
     --viewfinder: #2A1A63;
     background: var(--color-ink);
+    color: var(--color-white);
+  }
+  .set-capture .sub {
+    color: var(--color-muted-on-dark);
+  }
+  .set-capture .chip:not([class*="bg-"]) {
+    background: rgb(255 255 255 / 0.16);
+  }
+  .set-capture .btn-ghost {
+    color: var(--color-white);
+    box-shadow: inset 0 0 0 2px var(--color-white);
   }
 
   /* ---------- App frame ---------- */
@@ -131,27 +154,63 @@
   }
   .nav-pill {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: center;
     height: 64px;
     margin: 8px 14px calc(14px + env(safe-area-inset-bottom));
-    padding: 6px;
+    padding: 0 8px;
     border-radius: var(--radius-pill);
     background: var(--color-ink);
-    font-size: var(--text-caption);
+    font-size: 11px;
     font-weight: 700;
-    color: rgb(255 255 255 / 0.55);
   }
   .nav-pill a {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 2px;
+    height: 100%;
     border-radius: var(--radius-pill);
     color: inherit;
     text-decoration: none;
   }
-  .nav-pill a.active {
-    background: var(--color-lime);
-    color: var(--color-ink);
+  /* Each tab has its own colour (icon + label); lime/sky/mint/tangerine are only ever used on ink. */
+  .nav-pill a.nav-today { color: var(--color-lime); }
+  .nav-pill a.nav-league { color: var(--color-sky); }
+  .nav-pill a.nav-chat { color: var(--color-mint); }
+  .nav-pill a.nav-group { color: var(--color-tangerine); }
+  .nav-ico {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+  }
+  .nav-ico svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .nav-label {
+    line-height: 1;
+  }
+  /* Active: white circle behind the icon (violet stroke), lime label */
+  .nav-pill a.active .nav-ico {
+    background: var(--color-white);
+    color: var(--color-violet);
+  }
+  .nav-pill a.active .nav-ico svg {
+    width: 18px;
+    height: 18px;
+  }
+  .nav-pill a.active .nav-label {
+    color: var(--color-lime);
+    font-weight: 800;
   }
 
   /* ---------- Type ---------- */
@@ -169,14 +228,15 @@
     line-height: 1.1;
   }
   .sub {
-    color: var(--color-muted-on-dark);
+    color: var(--color-on-canvas-muted);
   }
   .tile .sub,
   .panel .sub {
     color: var(--color-muted);
   }
   .tile.bg-ink .sub,
-  .tile.bg-violet .sub {
+  .tile.bg-violet .sub,
+  .panel.bg-ink .sub {
     color: var(--color-muted-on-dark);
   }
 
@@ -186,7 +246,7 @@
     overflow: hidden;
     border-radius: var(--radius-tile);
     padding: 16px;
-    background: var(--color-white);
+    background: var(--color-canvas-chip);
     color: var(--color-ink);
   }
   .tile-sm {
@@ -199,11 +259,11 @@
   .panel {
     border-radius: var(--radius-tile);
     padding: 16px;
-    background: var(--color-white);
+    background: var(--color-canvas-chip);
     color: var(--color-ink);
   }
 
-  /* ---------- Chips: translucent white on violet; bg-* utilities colour them (ink text on light colours) ---------- */
+  /* ---------- Chips: lavender chip surface on the canvas; bg-* utilities colour them (ink text on light colours) ---------- */
   .chip {
     display: inline-flex;
     align-items: center;
@@ -212,8 +272,8 @@
     padding: 6px 12px;
     font-size: var(--text-small);
     font-weight: 700;
-    background: rgb(255 255 255 / 0.16);
-    color: inherit;
+    background: var(--color-canvas-chip);
+    color: var(--color-on-canvas);
   }
   .chip[class*="bg-"] {
     color: var(--color-ink);
@@ -266,8 +326,8 @@
   }
   .btn-ghost {
     background: transparent;
-    color: var(--color-white);
-    box-shadow: inset 0 0 0 2px var(--color-white);
+    color: var(--color-on-canvas);
+    box-shadow: inset 0 0 0 2px var(--color-ink);
   }
   .tile .btn-ghost,
   .panel .btn-ghost {
@@ -281,7 +341,7 @@
     width: 100%;
     border: 0;
     border-radius: var(--radius-input);
-    background: var(--color-white);
+    background: var(--color-canvas-chip);
     color: var(--color-ink);
     padding: 13px 14px;
     font-size: var(--text-body);
@@ -310,7 +370,7 @@
     place-items: center;
     flex: none;
     border-radius: 50%;
-    background: var(--color-white);
+    background: var(--color-canvas-chip);
     color: var(--color-ink);
     line-height: 1;
   }
@@ -380,13 +440,13 @@
     text-align: right;
     font-size: var(--text-caption);
     font-weight: 600;
-    color: var(--color-muted-on-dark);
+    color: var(--color-on-canvas-muted);
   }
   .league-table td {
     padding: 9px 4px;
     text-align: right;
     white-space: nowrap;
-    border-top: 1px solid var(--color-line-on-dark);
+    border-top: 1px solid var(--color-line);
   }
   .league-table th:nth-child(-n + 2),
   .league-table td:nth-child(-n + 2) {
@@ -562,7 +622,7 @@
   font-size: var(--text-tile);
 }
 .vr-down {
-  color: var(--color-down);
+  color: var(--color-down-text);
 }
 .vr-bubble {
   border-radius: var(--radius-bubble) var(--radius-bubble) var(--radius-bubble) 6px;
@@ -1130,4 +1190,143 @@
 }
 .wr-paused .wr-seg.on > i {
   animation-play-state: paused;
+}
+
+/* === ui-v3 === */
+@layer components {
+  /* Today header: greeting row + week strip */
+  .hello-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hello-badge {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--color-lime);
+    color: var(--color-ink);
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: var(--text-ui);
+  }
+  .hello-name {
+    font-size: var(--text-ui);
+    font-weight: 800;
+    line-height: 1.2;
+  }
+  .week-strip {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .week-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 0;
+    border-radius: var(--radius-pill);
+    background: var(--color-canvas-chip);
+    color: var(--color-on-canvas);
+  }
+  .week-day small {
+    font-size: var(--text-caption);
+    color: var(--color-on-canvas-muted);
+  }
+  .week-day b {
+    font-size: var(--text-body);
+    font-weight: 800;
+  }
+  .week-day.is-today {
+    background: var(--color-ink);
+    color: var(--color-white);
+    box-shadow: 0 0 0 2px var(--color-lime);
+  }
+  .week-day.is-today small {
+    color: var(--color-lime);
+  }
+  /* Lavender hero tile: ink button with lime text */
+  .btn-hero {
+    background: var(--color-ink);
+    color: var(--color-lime);
+  }
+}
+
+/* === reactions === */
+.rx-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rx-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.rx-col {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+/* Solid ink pills with white text: legible on violet and on white pages alike. */
+.rx-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 2px solid var(--color-pink);
+  border-radius: var(--radius-pill);
+  background: var(--color-ink);
+  color: var(--color-white);
+  font-size: var(--text-small);
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.rx-b .rx-pill {
+  border-color: var(--color-sky);
+}
+.rx-emoji {
+  font-size: var(--text-name);
+}
+.rx-count {
+  font-variant-numeric: tabular-nums;
+  min-width: 1ch;
+  text-align: left;
+}
+.rx-pill.rx-mine {
+  border-color: var(--color-lime);
+  box-shadow: 0 0 0 2px var(--color-lime);
+}
+.rx-pill:active {
+  transform: scale(0.96);
+}
+.rx-error {
+  align-self: flex-start;
+  margin: 0;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-ink);
+  color: var(--color-white);
+  font-size: var(--text-caption);
+  font-weight: 800;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rx-pill:active {
+    transform: none;
+  }
 }
