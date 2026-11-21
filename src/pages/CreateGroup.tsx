@@ -57,7 +57,7 @@ export default function CreateGroup() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Group name, like Flat 4B"
-          maxLength={60}
+          maxLength={40}
         />
         {error && (
           <p role="alert" className="tile tile-sm font-bold">

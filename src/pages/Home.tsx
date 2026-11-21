@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { APP_NAME } from '../brand'
 import Avatar from '../components/Avatar'
 import { useProfile, useSlowLoading } from '../data/auth'
-import { listMyGroups } from '../data/groups'
+import { friendlyError, listMyGroups } from '../data/groups'
 import type { Group } from '../lib/types'
 
 const TILE_COLOURS = ['bg-pink', 'bg-sky', 'bg-mint', 'bg-tangerine', 'bg-lavender']
@@ -33,7 +33,7 @@ export default function Home() {
         if (!cancelled) setGroups(g)
       })
       .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Could not load your groups.')
+        if (!cancelled) setError(friendlyError(e, 'Could not load your groups. Check your connection and try again.'))
       })
     return () => {
       cancelled = true

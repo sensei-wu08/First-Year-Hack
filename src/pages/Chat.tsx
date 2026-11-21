@@ -3,6 +3,7 @@ import { ReportButton } from '../components/ReportButton'
 import { useGroupContext } from '../components/GroupLayout'
 import { TONE_RULE } from '../brand'
 import { useProfile } from '../data/auth'
+import { friendlyError } from '../data/groups'
 import { friendlySendError, listMessages, sendMessage, type ChatMessage } from '../data/chat'
 
 const POLL_MS = 5000
@@ -54,7 +55,7 @@ export default function Chat() {
           setLoadError(null)
         }
       } catch (e) {
-        if (alive) setLoadError(e instanceof Error ? e.message : 'Something went wrong')
+        if (alive) setLoadError(friendlyError(e, 'Check your connection and try again.'))
       } finally {
         inFlight = false
         if (alive && rerun) {

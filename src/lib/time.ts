@@ -35,3 +35,9 @@ export function mondayOf(d: Date): string {
 export function monthKey(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`
 }
+
+/** 'YYYY-MM-DD' as a short day and month, e.g. '12 Dec'. */
+export function shortDate(date: string): string {
+  const [y, m, d] = date.split('-').map(Number)
+  return new Date(y, m - 1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+}

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import Avatar from '../components/Avatar'
 import { InviteQr } from '../components/InviteQr'
 import { useGroupContext } from '../components/GroupLayout'
-import PhaseBadge from '../components/PhaseBadge'
+import PhaseBadge, { phaseLabels } from '../components/PhaseBadge'
 import { useProfile } from '../data/auth'
 import { friendlyError } from '../data/groups'
 import { postedOf } from '../data/mappers'
@@ -65,7 +65,7 @@ function Fixture({ row, members, viewerId }: { row: Row; members: Map<string, Me
       <Link
         to={`/b/${view.record.id}`}
         className="versus block"
-        aria-label={`${a?.name ?? 'Player'} versus ${b?.name ?? 'Player'}, ${phase}`}
+        aria-label={`${a?.name ?? 'Player'} versus ${b?.name ?? 'Player'}, ${phaseLabels[phase].toLowerCase()}`}
       >
         <Side view={view} member={a} side="a" />
         <Side view={view} member={b} side="b" />
