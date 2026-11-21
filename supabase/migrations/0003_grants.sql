@@ -10,6 +10,10 @@ grant select, insert, update, delete on all tables in schema public to authentic
 grant all on all tables in schema public to service_role;
 grant all on all functions in schema public to service_role;
 
+-- Seasons: keep 0002's column-level rule (admins may only change ends_on).
+revoke update on public.seasons from authenticated;
+grant update (ends_on) on public.seasons to authenticated;
+
 -- Views (owner rights, filtered by is_member) — re-stated for clarity.
 grant select on public.battle_tallies to authenticated;
 grant select on public.battle_comments to authenticated;

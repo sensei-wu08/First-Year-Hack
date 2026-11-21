@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useGroupContext } from '../components/GroupLayout'
 import { useProfile } from '../data/auth'
 import { createCustomBattle, friendlyError } from '../data/groups'
-import { atLocalTime, localDateKey } from '../lib/time'
+import { localDateKey } from '../lib/time'
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
@@ -13,16 +13,23 @@ function toInput(d: Date): string {
   return `${localDateKey(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
+const MIN = 60_000
+
+/** Now, rounded up to the next 5 minutes. */
+function nextFive(): Date {
+  return new Date(Math.ceil(Date.now() / (5 * MIN)) * 5 * MIN)
+}
+
 export default function NewBattle() {
   const { group, members, reload } = useGroupContext()
   const { uid, loading } = useProfile()
   const navigate = useNavigate()
-  const today = localDateKey(new Date())
   const [playerA, setPlayerA] = useState('')
   const [playerB, setPlayerB] = useState('')
-  const [reveal, setReveal] = useState(toInput(atLocalTime(today, group.revealTime)))
-  const [deadline, setDeadline] = useState(toInput(atLocalTime(today, group.postDeadlineTime)))
-  const [results, setResults] = useState(toInput(atLocalTime(today, group.resultsTime)))
+  const [start] = useState(nextFive)
+  const [reveal, setReveal] = useState(toInput(start))
+  const [deadline, setDeadline] = useState(toInput(new Date(start.getTime() + 30 * MIN)))
+  const [results, setResults] = useState(toInput(new Date(start.getTime() + 120 * MIN)))
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -68,6 +75,10 @@ export default function NewBattle() {
     }
     if (!(revealAt < postDeadline && postDeadline < resultsAt)) {
       setError('Times must go in order: matches out, then post by, then results.')
+      return
+    }
+    if (resultsAt <= new Date()) {
+      setError('Results time has already passed. Pick a time in the future.')
       return
     }
     setBusy(true)

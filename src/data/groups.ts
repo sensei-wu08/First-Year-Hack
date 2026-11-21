@@ -1,5 +1,7 @@
 import type { Group } from '../lib/types'
+import { localDateKey } from '../lib/time'
 import { ensureSession } from './auth'
+import { currentSeason } from './reads'
 import { supabase } from './supabase'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -71,10 +73,21 @@ export async function createCustomBattle(i: {
   postDeadline: Date
   resultsAt: Date
 }): Promise<string> {
+  // Tag the battle with the group's current season when its reveal date falls inside it,
+  // so League and Wrapped (which filter by season) count it. A lookup failure just leaves it null.
+  let seasonId: string | null = null
+  try {
+    const s = await currentSeason(i.groupId)
+    const day = localDateKey(i.revealAt)
+    if (s && s.startsOn <= day && day <= s.endsOn) seasonId = s.id
+  } catch {
+    seasonId = null
+  }
   const { data, error } = await supabase
     .from('battles')
     .insert({
       group_id: i.groupId,
+      season_id: seasonId,
       player_a: i.playerA,
       player_b: i.playerB,
       reveal_at: i.revealAt.toISOString(),
