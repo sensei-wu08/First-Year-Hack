@@ -32,7 +32,7 @@ export function ProfileFields(props: {
           <button
             key={e}
             type="button"
-            className="grid aspect-square place-items-center rounded-full bg-white/20 text-[28px] leading-none ring-ink aria-pressed:bg-lime aria-pressed:ring-[3px]"
+            className="grid aspect-square place-items-center rounded-full bg-canvas-chip text-[28px] leading-none ring-ink aria-pressed:bg-lime aria-pressed:ring-[3px]"
             aria-pressed={props.emoji === e}
             aria-label={`Emoji ${e}`}
             onClick={() => props.onEmoji(e)}

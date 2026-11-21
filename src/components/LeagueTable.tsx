@@ -6,9 +6,15 @@ export function formatPoints(points: number): string {
   return points < 0 ? `−${-points}` : String(points)
 }
 
-/** Rank change since the last results. Up is lime, down is `down`; both go ink on your lime row. */
+/** Rank change since the last results. Up is an ink-on-lime pill, down is red text; both go ink on your lime row. */
 function Movement({ n, me }: { n: number; me: boolean }) {
-  const tone = me ? 'text-ink' : n > 0 ? 'text-lime' : n < 0 ? 'text-down' : 'text-muted-on-dark'
+  const tone = me
+    ? 'text-ink'
+    : n > 0
+      ? 'rounded-full bg-lime px-1.5 py-0.5 text-ink'
+      : n < 0
+        ? 'text-down-text'
+        : 'text-muted'
   const label = n > 0 ? `Up ${n}` : n < 0 ? `Down ${-n}` : 'No change'
   const glyph = n > 0 ? `▲${n}` : n < 0 ? `▼${-n}` : '–'
   return (
@@ -57,7 +63,7 @@ export default function LeagueTable({ rows, highlightId }: { rows: TableRow[]; h
                 {r.won}–{r.drawn}–{r.lost}
               </td>
               <td>{r.winPct}</td>
-              <td className={`font-display text-ui font-extrabold ${r.points < 0 && !me ? 'text-down' : ''}`}>
+              <td className={`font-display text-ui font-extrabold ${r.points < 0 && !me ? 'text-down-text' : ''}`}>
                 {formatPoints(r.points)}
               </td>
             </tr>
