@@ -1,5 +1,117 @@
-import Placeholder from '../components/Placeholder'
+import { useEffect, useState } from 'react'
+import type { FormEvent } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { upsertProfile, useProfile } from '../data/auth'
+import { getGroupByInvite, joinGroup } from '../data/groups'
+import { validateName } from '../lib/validate'
+import { EMOJIS, ProfileFields } from './Onboard'
+
+type Invite = { id: string; name: string; memberCount: number }
 
 export default function Join() {
-  return <Placeholder name="Join" />
+  const { code = '' } = useParams()
+  const navigate = useNavigate()
+  const { profile, loading: profileLoading } = useProfile()
+  const [invite, setInvite] = useState<Invite | null | undefined>(undefined)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [name, setName] = useState('')
+  const [emoji, setEmoji] = useState(EMOJIS[0])
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [tick, setTick] = useState(0)
+
+  useEffect(() => {
+    let cancelled = false
+    setInvite(undefined)
+    setLoadError(null)
+    getGroupByInvite(code)
+      .then((g) => {
+        if (!cancelled) setInvite(g)
+      })
+      .catch((e) => {
+        if (!cancelled) setLoadError(e instanceof Error ? e.message : 'Could not load this invite.')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [code, tick])
+
+  async function submit(e: FormEvent) {
+    e.preventDefault()
+    if (!invite) return
+    setError(null)
+    let cleanName = ''
+    if (!profile) {
+      const v = validateName(name)
+      if (!v.ok) {
+        setError(v.error)
+        return
+      }
+      cleanName = v.value
+    }
+    setBusy(true)
+    try {
+      if (!profile) await upsertProfile(cleanName, emoji)
+      const groupId = await joinGroup(code)
+      navigate(`/g/${groupId}`, { replace: true })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : ''
+      setError(
+        msg.includes('bad_code')
+          ? "This invite link isn't valid. Ask for a new one."
+          : 'Could not join this group. Check your connection and try again.',
+      )
+      setBusy(false)
+    }
+  }
+
+  let body
+  if (loadError) {
+    body = (
+      <>
+        <p className="panel" role="alert">{loadError}</p>
+        <button className="btn" onClick={() => setTick((t) => t + 1)}>Try again</button>
+      </>
+    )
+  } else if (invite === undefined || profileLoading) {
+    body = <p className="sub">Loading your invite</p>
+  } else if (invite === null) {
+    body = (
+      <p className="panel" role="alert">
+        This invite link isn't valid. Ask for a new one.
+      </p>
+    )
+  } else {
+    body = (
+      <form className="flex flex-col gap-4" onSubmit={submit}>
+        <div className="invite-hero">
+          <h1 className="h-display">Join {invite.name}</h1>
+          <p className="mt-2 font-bold">
+            {invite.memberCount === 1 ? '1 person is' : `${invite.memberCount} people are`} in this league.
+          </p>
+        </div>
+        {profile ? (
+          <p className="font-bold">
+            You'll join as {profile.emoji} {profile.name}.
+          </p>
+        ) : (
+          <ProfileFields name={name} emoji={emoji} onName={setName} onEmoji={setEmoji} error={null} />
+        )}
+        {error && (
+          <p role="alert" className="font-bold text-down">
+            {error}
+          </p>
+        )}
+        <button className="btn" type="submit" disabled={busy}>
+          {busy ? 'Joining' : `Join ${invite.name}`}
+        </button>
+      </form>
+    )
+  }
+
+  return (
+    <div className="set-join">
+      <div className="screen app-col">{body}</div>
+    </div>
+  )
 }
