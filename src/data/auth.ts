@@ -29,6 +29,7 @@ export function useProfile(): { uid: string | null; profile: Member | null; load
 
   useEffect(() => {
     let cancelled = false
+    let retry: ReturnType<typeof setTimeout> | undefined
     setLoading(true)
     ;(async () => {
       try {
@@ -38,14 +39,16 @@ export function useProfile(): { uid: string | null; profile: Member | null; load
         if (cancelled) return
         setUid(id)
         setProfile(data ? { id: data.id, name: data.name, emoji: data.emoji } : null)
+        setLoading(false)
       } catch {
-        if (!cancelled) setProfile(null)
-      } finally {
-        if (!cancelled) setLoading(false)
+        // A network or server error is not "no profile": stay loading and retry,
+        // so a flaky connection never bounces someone to onboarding.
+        if (!cancelled) retry = setTimeout(() => setTick((t) => t + 1), 2000)
       }
     })()
     return () => {
       cancelled = true
+      if (retry) clearTimeout(retry)
     }
   }, [tick])
 
