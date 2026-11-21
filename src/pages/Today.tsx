@@ -214,12 +214,14 @@ export default function Today() {
       <header className="hello-row">
         <span className="hello-badge" aria-hidden="true">{(greetName || '?').charAt(0).toUpperCase()}</span>
         <div className="flex min-w-0 flex-1 flex-col">
-          <h1 className="hello-name">{greetName ? `Hello, ${greetName}` : 'Hello'}</h1>
-          <span className="sub text-small truncate">{group.name} · {longDate(now)}</span>
+          <h1 className="hello-name truncate">{greetName ? `Hello, ${greetName}` : 'Hello'}</h1>
+          <span className="sub text-small truncate">
+            {group.name}
+            {liveSeason && seasonDay ? ` · Season ${liveSeason.number} · day ${seasonDay}` : ''} · {longDate(now)}
+          </span>
         </div>
-        {liveSeason && seasonDay && <span className="chip bg-lime">{`Season ${liveSeason.number} · day ${seasonDay}`}</span>}
         {/* You can be in many groups: this is the way back to the list (the installed app has no back button). */}
-        <Link to="/" className="chip bg-ink text-white shrink-0" aria-label="Switch group: see all your groups">
+        <Link to="/" className="chip bg-ink text-white shrink-0 whitespace-nowrap" aria-label="Switch group: see all your groups">
           Switch group
         </Link>
       </header>
