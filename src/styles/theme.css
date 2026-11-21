@@ -802,3 +802,229 @@
   font-size: var(--text-small);
   font-weight: 700;
 }
+
+/* === S9 wrapped === */
+/* Full-bleed story cards: a 9:16 frame centred on the violet canvas, ink text, one colour per card. */
+.wr-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  background: var(--color-violet);
+}
+.wr-frame {
+  position: relative;
+  aspect-ratio: 9 / 16;
+  height: 100dvh;
+  max-width: 100vw;
+  overflow: hidden;
+  color: var(--color-ink);
+}
+.wr-pink {
+  background: var(--color-pink);
+}
+.wr-lime {
+  background: var(--color-lime);
+}
+.wr-sky {
+  background: var(--color-sky);
+}
+.wr-tangerine {
+  background: var(--color-tangerine);
+}
+.wr-progress {
+  position: absolute;
+  top: calc(12px + env(safe-area-inset-top));
+  left: 14px;
+  right: 14px;
+  z-index: 3;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 4px;
+  pointer-events: none;
+}
+.wr-seg {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgb(23 11 59 / 0.25);
+}
+.wr-seg > i {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--color-ink);
+}
+.wr-seg.done > i {
+  width: 100%;
+}
+.wr-seg.on > i {
+  animation: wr-fill var(--wr-ms, 6000ms) linear forwards;
+}
+@keyframes wr-fill {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+@keyframes wr-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.wr-close {
+  position: absolute;
+  top: calc(22px + env(safe-area-inset-top));
+  right: 6px;
+  z-index: 3;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font-size: var(--text-heading);
+  line-height: 1;
+  cursor: pointer;
+}
+.wr-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.wr-zone-prev {
+  left: 0;
+  width: 33.333%;
+}
+.wr-zone-next {
+  right: 0;
+  width: 66.667%;
+}
+.wr-card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: calc(52px + env(safe-area-inset-top)) 20px calc(28px + env(safe-area-inset-bottom));
+  animation: wr-in 180ms ease-out;
+}
+.wr-card.wr-last {
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
+.wr-done {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: calc(28px + env(safe-area-inset-bottom));
+  z-index: 2;
+  width: auto;
+}
+.wr-hero {
+  margin-top: 8px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-hero);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.wr-hero.wr-hero-sm {
+  font-size: var(--text-score);
+}
+.wr-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-heading);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+.wr-line {
+  max-width: 20ch;
+  font-size: var(--text-tile);
+  font-weight: 800;
+  line-height: 1.2;
+}
+.wr-quote {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-heading);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.wr-quote.wr-quote-long {
+  font-size: var(--text-tile);
+}
+.wr-photo {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  margin-bottom: 8px;
+  overflow: hidden;
+  border-radius: var(--radius-photo);
+  background: var(--color-ink);
+}
+.wr-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.wr-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.wr-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: var(--radius-pill);
+  padding: 8px 16px 8px 8px;
+  background: rgb(255 255 255 / 0.55);
+  font-weight: 800;
+}
+.wr-row-rank {
+  width: 28px;
+  text-align: center;
+  font-family: var(--font-display);
+}
+.wr-row-name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.wr-row-end {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wr-seg.on > i {
+    animation: none;
+    width: 100%;
+  }
+  .wr-card {
+    animation: none;
+  }
+}
