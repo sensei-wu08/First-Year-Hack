@@ -118,7 +118,7 @@ export default function League() {
               ))}
             </div>
           )}
-          <div className="tile tile-sm bg-ink">
+          <div className="tile tile-sm">
             <LeagueTable rows={data.rows} highlightId={uid} />
           </div>
         </>

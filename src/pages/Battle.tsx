@@ -104,7 +104,7 @@ function RevealNow({ battleId, note, onDone }: { battleId: string; note: string 
     )
   }
   return (
-    <div className="tile bg-white" role="alertdialog" aria-label="Confirm reveal">
+    <div className="tile" role="alertdialog" aria-label="Confirm reveal">
       <p className="h-tile">Reveal results now for everyone?</p>
       <p className="sub mt-1">Voting closes straight away and the points are counted. {note}</p>
       {error && <p role="alert">{error}</p>}
@@ -140,7 +140,7 @@ export default function Battle() {
   if (!data) {
     return (
       <Frame>
-        <div className="tile bg-white">
+        <div className="tile">
           <p className="h-tile">{error ? "Couldn't open this battle" : "We can't find this battle"}</p>
           {error && <p className="sub mt-1">Couldn't reach Fits. Check your connection and tap Try again.</p>}
         </div>
@@ -246,7 +246,7 @@ export default function Battle() {
     )
   } else {
     body = (
-      <div className="tile bg-white">
+      <div className="tile">
         <p className="h-tile">This battle was voided</p>
         <p className="sub mt-1">One of the players left the group before it finished.</p>
       </div>

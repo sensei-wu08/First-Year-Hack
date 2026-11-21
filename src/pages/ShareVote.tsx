@@ -69,7 +69,7 @@ export default function ShareVote() {
   if (!data) {
     return (
       <Frame>
-        <div className="tile bg-white">
+        <div className="tile">
           <p className="h-tile">{error ? "Couldn't open this battle" : "This battle isn't open to public voting."}</p>
           {error && <p className="sub mt-1">Couldn't reach Fits. Check your connection and tap Try again.</p>}
         </div>
@@ -197,7 +197,7 @@ export default function ShareVote() {
     )
   } else {
     body = (
-      <div className="tile bg-white">
+      <div className="tile">
         <p className="h-tile">This battle was voided</p>
       </div>
     )

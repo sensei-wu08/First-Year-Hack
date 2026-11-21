@@ -73,7 +73,7 @@ export function ResultsReveal({
       </div>
 
       {showScore ? (
-        <div className="tile bg-white">
+        <div className="tile">
           <div className="flex items-center justify-between gap-2">
             <span className="vr-score vr-score-home">{votesA}</span>
             <span className="vr-vs-names">
@@ -98,7 +98,7 @@ export function ResultsReveal({
           )}
         </div>
       ) : (
-        <div className="tile bg-white">
+        <div className="tile">
           {kind === 'forfeit' && forfeited.length > 0 ? (
             forfeited.map((s) => (
               <p key={s} className="h-tile">
@@ -120,7 +120,7 @@ export function ResultsReveal({
           {(['a', 'b'] as Side[]).map((s) => {
             const pts = result.points[people[s].id] ?? 0
             return (
-              <li key={s} className="tile tile-sm bg-white vr-points">
+              <li key={s} className="tile tile-sm vr-points">
                 <span className="vr-points-name">
                   {people[s].emoji} {people[s].name}
                 </span>
