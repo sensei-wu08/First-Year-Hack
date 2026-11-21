@@ -175,6 +175,11 @@ export default function Settings() {
   async function start() {
     setStarting(true)
     setSeasonMsg(null)
+    if (startDate < firstStart) {
+      setSeasonMsg({ kind: 'error', text: `Pick ${firstStart} or later. Today's matches have already gone out.` })
+      setStarting(false)
+      return
+    }
     try {
       await startSeason(
         group,
@@ -186,6 +191,10 @@ export default function Settings() {
       reload()
     } catch (e) {
       setSeasonMsg({ kind: 'error', text: explain(e, 'Could not start the season. Check your connection and try again.') })
+      if (e instanceof Error && e.message.toLowerCase().includes('season_active')) {
+        loadSeason()
+        reload()
+      }
     } finally {
       setStarting(false)
     }
