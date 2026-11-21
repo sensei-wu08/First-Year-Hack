@@ -1,11 +1,7 @@
-import { describe, expect, test, vi } from 'vitest'
+import { describe, expect, test } from 'vitest'
 import type { OotwAward } from './ootw'
-import { resolveAll } from './scoring'
 import { buildTable, buildTableWithMovement, leagueTable } from './table'
 import type { BattleFacts, BattleResult, Member, Outcome } from './types'
-
-// leagueTable is wired to resolveAll; stub it so these tests don't depend on S1.
-vi.mock('./scoring', () => ({ resolveAll: vi.fn(), scoreBattle: vi.fn() }))
 
 const m = (id: string): Member => ({ id, name: id[0].toUpperCase() + id.slice(1), emoji: '🙂' })
 const ana = m('ana')
@@ -125,19 +121,53 @@ describe('buildTableWithMovement', () => {
   })
 })
 
-describe('leagueTable', () => {
-  test('wires resolveAll, awards and movement', () => {
-    const early = win('ana', 'ben', new Date(2026, 10, 16, 18, 0))
-    const latest = win('ben', 'cal', new Date(2026, 10, 17, 18, 0))
-    vi.mocked(resolveAll).mockReturnValue([early, latest])
-    const facts: BattleFacts[] = []
-    const now = new Date(2026, 10, 18, 9, 0)
-    const rows = leagueTable([ana, ben, cal], facts, now)
-    expect(resolveAll).toHaveBeenCalledWith(facts, now)
-    expect(rows.map((r) => [r.name, r.points, r.movement])).toEqual([
-      ['Ana', 3, 0],
-      ['Ben', 3, 0],
-      ['Cal', 0, 0],
-    ])
+describe('leagueTable (real resolveAll)', () => {
+  // Week Mon 2026-11-16 to Sun 2026-11-22. Results land at 18:00 on the battle's day.
+  const day = (d: number, hh = 0) => new Date(2026, 10, d, hh, 0)
+  function battle(id: string, d: number, a: string, b: string, posted: [boolean, boolean], votes: [number, number]): BattleFacts {
+    return {
+      battle: {
+        id,
+        groupId: 'g',
+        seasonId: null,
+        playerA: a,
+        playerB: b,
+        revealAt: day(d, 9),
+        postDeadline: day(d, 12),
+        resultsAt: day(d, 18),
+        closedAt: null,
+        voidedAt: null,
+        shareCode: id,
+      },
+      mediaA: posted[0] ? 'a.jpg' : null,
+      mediaB: posted[1] ? 'b.jpg' : null,
+      votesA: votes[0],
+      votesB: votes[1],
+    }
+  }
+  const facts = [
+    battle('b1', 16, 'ana', 'ben', [true, true], [4, 2]), // Ana wins
+    battle('b2', 17, 'ben', 'cal', [true, true], [3, 0]), // Ben wins 3-0 (100% share, 3 votes)
+    battle('b3', 17, 'dee', 'eve', [true, false], [0, 0]), // forfeit: Dee +3, Eve -1
+    battle('b4', 17, 'fay', 'gus', [false, false], [0, 0]), // nobody posted: void both, -1 each
+  ]
+  const members = ['ana', 'ben', 'cal', 'dee', 'eve', 'fay', 'gus'].map(m)
+  const by = (rows: ReturnType<typeof leagueTable>, id: string) => rows.find((r) => r.profileId === id)!
+
+  test('scores forfeits and void_both from real results', () => {
+    const rows = leagueTable(members, facts, day(18, 9))
+    expect(by(rows, 'dee')).toMatchObject({ played: 1, won: 1, points: 3 })
+    expect(by(rows, 'eve')).toMatchObject({ played: 1, lost: 1, points: -1 })
+    expect(by(rows, 'fay')).toMatchObject({ played: 0, points: -1 })
+    expect(by(rows, 'gus')).toMatchObject({ played: 0, points: -1 })
+    expect(by(rows, 'ana')).toMatchObject({ played: 1, won: 1, points: 3, ootw: 0 })
+    expect(by(rows, 'ben')).toMatchObject({ played: 2, won: 1, lost: 1, points: 3 })
+  })
+
+  test('awards Outfit of the Week once Sunday arrives and moves the winner up', () => {
+    expect(by(leagueTable(members, facts, day(21, 20)), 'ben').ootw).toBe(0)
+    const rows = leagueTable(members, facts, day(23, 9))
+    expect(by(rows, 'ben')).toMatchObject({ ootw: 1, points: 5, rank: 1, movement: 2 })
+    expect(by(rows, 'ana').movement).toBe(-1)
   })
 })

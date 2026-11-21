@@ -1,24 +1,14 @@
 import type { TableRow } from '../lib/table'
 import Avatar from './Avatar'
 
-function Movement({ n }: { n: number }) {
-  if (n > 0) {
-    return (
-      <span className="league-move text-up" aria-label={`Up ${n}`}>
-        ▲{n}
-      </span>
-    )
-  }
-  if (n < 0) {
-    return (
-      <span className="league-move text-down" aria-label={`Down ${-n}`}>
-        ▼{-n}
-      </span>
-    )
-  }
+/** Rank change since the last results. Up is lime, down is `down`; both go ink on your lime row. */
+function Movement({ n, me }: { n: number; me: boolean }) {
+  const tone = me ? 'text-ink' : n > 0 ? 'text-lime' : n < 0 ? 'text-down' : 'text-muted-on-dark'
+  const label = n > 0 ? `Up ${n}` : n < 0 ? `Down ${-n}` : 'No change'
+  const glyph = n > 0 ? `▲${n}` : n < 0 ? `▼${-n}` : '–'
   return (
-    <span className="league-move text-muted" aria-label="No change">
-      –
+    <span className={`ml-1.5 text-[11px] font-bold ${tone}`} aria-label={label}>
+      {glyph}
     </span>
   )
 }
@@ -38,29 +28,36 @@ export default function LeagueTable({ rows, highlightId }: { rows: TableRow[]; h
         </tr>
       </thead>
       <tbody>
-        {rows.map((r) => (
-          <tr key={r.profileId} className={r.profileId === highlightId ? 'league-me' : undefined}>
-            <td className="league-rank">
-              <span className="font-display">{r.rank}</span>
-              <Movement n={r.movement} />
-            </td>
-            <td className="league-name">
-              <Avatar emoji={r.emoji} size={28} />
-              <span className="league-name-text">{r.name}</span>
-              {r.ootw > 0 && (
-                <span role="img" aria-label="Outfit of the Week winner" title="Outfit of the Week winner">
-                  ⭐
-                </span>
-              )}
-            </td>
-            <td>{r.played}</td>
-            <td>
-              {r.won}–{r.drawn}–{r.lost}
-            </td>
-            <td>{r.winPct}</td>
-            <td className={r.points < 0 ? 'league-pts text-down' : 'league-pts'}>{r.points < 0 ? `−${-r.points}` : r.points}</td>
-          </tr>
-        ))}
+        {rows.map((r) => {
+          const me = r.profileId === highlightId
+          return (
+            <tr key={r.profileId} className={me ? 'league-me' : undefined}>
+              <td className="w-[52px] font-extrabold">
+                <span className="font-display">{r.rank}</span>
+                <Movement n={r.movement} me={me} />
+              </td>
+              <td className="w-full max-w-0 font-bold">
+                <div className="flex items-center gap-2">
+                  <Avatar emoji={r.emoji} size={24} />
+                  <span className="min-w-0 truncate">{r.name}</span>
+                  {r.ootw > 0 && (
+                    <span role="img" aria-label="Outfit of the Week winner" title="Outfit of the Week winner">
+                      ⭐
+                    </span>
+                  )}
+                </div>
+              </td>
+              <td>{r.played}</td>
+              <td>
+                {r.won}–{r.drawn}–{r.lost}
+              </td>
+              <td>{r.winPct}</td>
+              <td className={`font-display text-ui font-extrabold ${r.points < 0 && !me ? 'text-down' : ''}`}>
+                {r.points < 0 ? `−${-r.points}` : r.points}
+              </td>
+            </tr>
+          )
+        })}
       </tbody>
     </table>
   )

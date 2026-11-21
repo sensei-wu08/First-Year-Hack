@@ -26,6 +26,9 @@ function seasonLabel(season: Season | null, now: Date): string {
   return `Season ${season.number} · Day ${day} of ${total}`
 }
 
+const PODIUM_COLOURS = ['bg-lime', 'bg-pink', 'bg-sky']
+const PODIUM_PLACES = ['1st', '2nd', '3rd']
+
 interface Loaded {
   rows: TableRow[]
   label: string
@@ -60,11 +63,13 @@ export default function League() {
     }
   }, [group.id, members, tick])
 
+  const podium = data && data.rows.some((r) => r.played > 0) ? data.rows.slice(0, 3) : []
+
   return (
     <div className="screen">
-      <header className="flex flex-col gap-2">
+      <header className="flex items-center justify-between gap-2.5">
         <h1 className="h-display">League</h1>
-        <p className="sub">{data?.label ?? ' '}</p>
+        {data && <span className="chip">{data.label}</span>}
       </header>
       {error ? (
         <>
@@ -78,7 +83,22 @@ export default function League() {
       ) : data.rows.length === 0 ? (
         <p className="panel">No one is in this league yet. Invite your friends from the Group tab.</p>
       ) : (
-        <LeagueTable rows={data.rows} highlightId={uid} />
+        <>
+          {podium.length > 0 && (
+            <div className="grid grid-cols-3 gap-2">
+              {podium.map((r, i) => (
+                <div key={r.profileId} className={`tile tile-sm ${PODIUM_COLOURS[i]}`}>
+                  <small className="block">{PODIUM_PLACES[i]}</small>
+                  <b className="block font-display text-ui font-extrabold wrap-anywhere">{r.name}</b>
+                  <small className="block">{r.points} pts</small>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="tile tile-sm bg-ink">
+            <LeagueTable rows={data.rows} highlightId={uid} />
+          </div>
+        </>
       )}
     </div>
   )
