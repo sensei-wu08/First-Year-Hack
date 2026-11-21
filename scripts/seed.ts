@@ -12,10 +12,13 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { createClient } from '@supabase/supabase-js'
 import { cleanText } from '../src/lib/filter.ts'
-import { mulberry32 } from '../src/lib/rng.ts'
+import { mulberry32, shuffle } from '../src/lib/rng.ts'
 import { scheduleSeason, defaultBattlesPerDay } from '../src/lib/scheduler.ts'
 import type { DayTimes, ScheduledBattle } from '../src/lib/scheduler.ts'
 import { addDays, localDateKey } from '../src/lib/time.ts'
+
+// Battle times are device-local (Europe/London). Set before any Date is created.
+process.env.TZ = 'Europe/London'
 
 const GROUP_NAME = 'The Fit Crew'
 const SEED = 2026
@@ -282,17 +285,22 @@ async function main() {
     ),
   ]
 
-  // Season 1 no-shows: ~6% one-sided, then make sure the flaky member has at least 2 forfeits.
+  // Season 1 no-shows: ~6% of battles in total, one-sided, never the presenter. The flaky member
+  // gets exactly 2 of them (their 2nd and 5th battles); any remaining budget is spread at random.
   const s1 = plans.filter((p) => p.season === 1)
-  s1.forEach((p, i) => {
-    const r = mulberry32(SEED * 7919 + i)
-    if (r() < NO_SHOW_RATE) p.noShow = r() < 0.5 ? 'a' : 'b'
-  })
-  const flakyForfeits = () =>
-    s1.filter((p) => (p.noShow === 'a' && p.sb.playerA === flaky) || (p.noShow === 'b' && p.sb.playerB === flaky)).length
-  for (const p of s1) {
-    if (flakyForfeits() >= 2) break
-    if (p.noShow === null && (p.sb.playerA === flaky || p.sb.playerB === flaky)) p.noShow = p.sb.playerA === flaky ? 'a' : 'b'
+  const target = Math.max(2, Math.round(NO_SHOW_RATE * s1.length))
+  const flakyBattles = s1.filter((p) => p.sb.playerA === flaky || p.sb.playerB === flaky)
+  for (const p of [flakyBattles[1], flakyBattles[4]]) {
+    if (p) p.noShow = p.sb.playerA === flaky ? 'a' : 'b'
+  }
+  const noShowRng = mulberry32(SEED * 7919)
+  for (const p of shuffle(s1, noShowRng)) {
+    if (s1.filter((x) => x.noShow !== null).length >= target) break
+    if (p.noShow !== null) continue
+    const side = p.sb.playerA === me ? 'b' : p.sb.playerB === me ? 'a' : noShowRng() < 0.5 ? 'a' : 'b'
+    const skipper = side === 'a' ? p.sb.playerA : p.sb.playerB
+    if (skipper === me) continue
+    p.noShow = side
   }
 
   // --- posts and votes ----------------------------------------------------
