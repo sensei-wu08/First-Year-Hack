@@ -92,17 +92,17 @@ export function PostPanel({ view, viewerId, onPosted }: { view: BattleView; view
   ]
 
   return (
-    <section className="panel post-panel" aria-label="Posting status">
+    <section className="tile flex flex-col gap-3" aria-label="Posting status">
       {phase === 'posting' && (
-        <p className="post-deadline">
-          <strong>Post by {clock(record.postDeadline)}</strong>{' '}
+        <p>
+          <strong className="h-tile">Post by {clock(record.postDeadline)}</strong>{' '}
           <span className="sub">{countdown(record.postDeadline, now)}</span>
         </p>
       )}
 
-      <ul className="post-status">
+      <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
         {rows.map((r) => (
-          <li key={r.id} className={r.done ? 'post-done' : 'post-wait'}>
+          <li key={r.id} className={`chip ${r.done ? 'bg-lime' : 'bg-lavender'}`}>
             {r.done ? '✓ Posted' : `Waiting for ${r.id === viewerId ? 'you' : (names[r.id] ?? 'them')}`}
           </li>
         ))}
@@ -115,12 +115,12 @@ export function PostPanel({ view, viewerId, onPosted }: { view: BattleView; view
       )}
 
       {step === 'failed' && error && (
-        <div className="post-upload">
-          <p role="alert" className="post-error">
+        <div className="flex flex-col gap-2.5">
+          <p role="alert" className="tile tile-sm bg-down font-bold">
             {error.message}
           </p>
           {error.retryable && blob && (
-            <button type="button" className="btn" onClick={() => void upload(blob)}>
+            <button type="button" className="btn btn-dark" onClick={() => void upload(blob)}>
               Try again
             </button>
           )}
@@ -128,7 +128,7 @@ export function PostPanel({ view, viewerId, onPosted }: { view: BattleView; view
       )}
 
       {canPost && step === 'idle' && (
-        <button type="button" className="btn post-cta" onClick={() => setStep('camera')}>
+        <button type="button" className="btn" onClick={() => setStep('camera')}>
           Post my fit
         </button>
       )}

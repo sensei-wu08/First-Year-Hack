@@ -74,62 +74,74 @@ export function Camera({ onCapture, onCancel }: { onCapture(blob: Blob): void; o
   }
 
   return (
-    <div className="cam-screen">
-      <div className="cam-top">
-        <h2 className="cam-title">Post your fit</h2>
-        {onCancel && (
-          <button type="button" className="cam-chip" onClick={onCancel}>
-            Cancel
-          </button>
-        )}
-      </div>
+    <div className="cam-screen set-capture">
+      <div className="app-col flex min-h-0 flex-1 flex-col gap-2.5">
+        <div className="flex items-center justify-between">
+          <h2 className="h-tile">Post your fit</h2>
+          {onCancel && (
+            <button type="button" className="chip" onClick={onCancel}>
+              Cancel
+            </button>
+          )}
+        </div>
 
-      <div className="cam-viewfinder">
+        <div className="viewfinder min-h-0 flex-1">
+          {shot ? (
+            <img className="absolute inset-0 size-full object-cover" src={shot.url} alt="Your fit, ready to post" />
+          ) : (
+            <video ref={videoRef} className="absolute inset-0 size-full object-cover" playsInline muted autoPlay />
+          )}
+          {status === 'starting' && !shot && (
+            <p className="sub absolute inset-0 grid place-items-center">Starting camera…</p>
+          )}
+          {status === 'error' && (
+            <div
+              className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-ink p-6 text-center"
+              role="alert"
+            >
+              <p className="text-[length:var(--text-name)] font-semibold">{error}</p>
+              <button type="button" className="btn w-auto" onClick={() => setAttempt((n) => n + 1)}>
+                Retry
+              </button>
+            </div>
+          )}
+          <div className="absolute inset-x-3.5 top-3.5 flex justify-end">
+            <span className="chip bg-lime">Live only</span>
+          </div>
+          {!shot && status === 'live' && (
+            <span aria-hidden="true" className="sticker-sparkle absolute bottom-4 left-4 right-auto size-10 bg-pink" />
+          )}
+        </div>
+
         {shot ? (
-          <img className="cam-media" src={shot.url} alt="Your fit, ready to post" />
-        ) : (
-          <video ref={videoRef} className="cam-media" playsInline muted autoPlay />
-        )}
-        {status === 'error' && (
-          <div className="cam-error" role="alert">
-            <p>{error}</p>
-            <button type="button" className="btn cam-retry" onClick={() => setAttempt((n) => n + 1)}>
-              Retry
+          <div className="grid grid-cols-[1fr_2fr] gap-2.5 pt-2">
+            <button type="button" className="btn btn-ghost" onClick={() => setShot(null)}>
+              Retake
+            </button>
+            <button type="button" className="btn" onClick={() => onCapture(shot.blob)}>
+              Post my fit
             </button>
           </div>
+        ) : (
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center px-4 pt-2 pb-1 font-bold">
+            <button
+              type="button"
+              className="justify-self-start py-2.5"
+              onClick={() => setFacing((f) => (f === 'user' ? 'environment' : 'user'))}
+            >
+              Flip
+            </button>
+            <button
+              type="button"
+              className="cam-shutter"
+              aria-label="Take photo"
+              disabled={status !== 'live'}
+              onClick={() => void takePhoto()}
+            />
+            <span aria-hidden="true" />
+          </div>
         )}
-        {status === 'starting' && !shot && <p className="cam-status">Starting camera…</p>}
-        <span className="cam-chip cam-live">Live only</span>
       </div>
-
-      {shot ? (
-        <div className="cam-actions">
-          <button type="button" className="btn btn-ghost cam-ghost" onClick={() => setShot(null)}>
-            Retake
-          </button>
-          <button type="button" className="btn cam-primary" onClick={() => onCapture(shot.blob)}>
-            Post my fit
-          </button>
-        </div>
-      ) : (
-        <div className="cam-shutter-row">
-          <button
-            type="button"
-            className="cam-side"
-            onClick={() => setFacing((f) => (f === 'user' ? 'environment' : 'user'))}
-          >
-            Flip
-          </button>
-          <button
-            type="button"
-            className="cam-shutter"
-            aria-label="Take photo"
-            disabled={status !== 'live'}
-            onClick={() => void takePhoto()}
-          />
-          <span className="cam-side" aria-hidden="true" />
-        </div>
-      )}
     </div>
   )
 }
