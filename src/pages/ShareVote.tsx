@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom'
 import { ResultsReveal } from '../components/ResultsReveal'
 import { FitSide, VersusSeam } from '../components/VersusSeam'
 import { VoteSplit } from '../components/VoteSplit'
-import { ensureSession, upsertProfile } from '../data/auth'
+import { ensureSession, upsertProfile, useProfile } from '../data/auth'
 import { postedOf, toFacts } from '../data/mappers'
 import {
   castVote,
@@ -57,6 +57,7 @@ export default function ShareVote() {
   const now = useNow(1000)
   const [name, setName] = useState('')
   const [nameError, setNameError] = useState<string | null>(null)
+  const { profile, loading: profileLoading } = useProfile()
 
   if (!loaded) {
     return (
@@ -70,7 +71,7 @@ export default function ShareVote() {
       <Frame>
         <div className="tile bg-white">
           <p className="h-tile">{error ? "Couldn't open this battle" : "This battle isn't open to public voting."}</p>
-          {error && <p className="sub mt-1">{error}</p>}
+          {error && <p className="sub mt-1">Couldn't reach Fits. Check your connection and tap Try again.</p>}
         </div>
         {error && (
           <button type="button" className="btn" onClick={() => void reload()}>
@@ -101,7 +102,8 @@ export default function ShareVote() {
 
   async function handleVote(side: Side, comment: string | null) {
     try {
-      if (name.trim()) {
+      // Only name a voter who has no profile yet: never overwrite a real member's name or emoji.
+      if (!profile && name.trim()) {
         const v = validateName(name)
         if (!v.ok) {
           setNameError(v.error)
@@ -144,33 +146,33 @@ export default function ShareVote() {
     )
   } else if (phase === 'voting') {
     body = (
-      <>
-        {block === 'ok' && (
-          <>
-            <input
-              className="input"
-              aria-label="Your name"
-              placeholder="Your name (optional, shown with your comment)"
-              maxLength={24}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            {nameError && (
-              <p className="sub" role="alert">
-                {nameError}
-              </p>
-            )}
-          </>
-        )}
-        <VoteSplit
-          view={view}
-          players={players}
-          block={block}
-          commentsEnabled={group.commentsEnabled}
-          mySide={mine}
-          onVote={handleVote}
-        />
-      </>
+      <VoteSplit
+        view={view}
+        players={players}
+        block={block}
+        commentsEnabled={group.commentsEnabled}
+        mySide={mine}
+        onVote={handleVote}
+        extra={
+          !profile && !profileLoading && group.commentsEnabled ? (
+            <>
+              <input
+                className="input"
+                aria-label="Your name"
+                placeholder="Your name (optional, shown with your comment)"
+                maxLength={24}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+              {nameError && (
+                <p className="sub" role="alert">
+                  {nameError}
+                </p>
+              )}
+            </>
+          ) : null
+        }
+      />
     )
   } else if (phase === 'awaiting_results') {
     body = (

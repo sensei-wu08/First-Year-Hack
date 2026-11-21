@@ -1,3 +1,4 @@
+import { cleanText } from '../lib/filter'
 import type { CommentView } from '../lib/types'
 import Avatar from './Avatar'
 import { ReportButton } from './ReportButton'
@@ -18,7 +19,7 @@ export function CommentList({ comments }: { comments: CommentView[] }) {
               </span>
               <ReportButton battleId={c.battleId} />
             </div>
-            <p>{c.body}</p>
+            <p>{cleanText(c.body).text}</p>
           </li>
         ))}
       </ul>

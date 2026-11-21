@@ -129,17 +129,27 @@ export function usePoll<T>(load: () => Promise<T>, stopWhen?: (d: T) => boolean,
     let cancelled = false
     let stopped = false
     setState({ loaded: false, data: undefined, error: null })
+    // inFlight: timer and visibility polls skip while a run is pending (slow Wi-Fi must not stack requests).
+    // seq: only the latest run may write state, so a late stale response can't undo a newer one.
+    let inFlight = false
+    let seq = 0
     const run = async (force = false) => {
       if (stopped && !force) return
+      if (inFlight && !force) return
+      const mine = ++seq
+      inFlight = true
       try {
         const d = await load()
-        if (cancelled) return
+        if (cancelled || mine !== seq) return
         stopped = !!stopRef.current?.(d)
         setState({ loaded: true, data: d, error: null })
       } catch (e) {
-        if (cancelled) return
+        if (cancelled || mine !== seq) return
+        console.error(e)
         const message = e instanceof Error ? e.message : 'Something went wrong'
         setState((s) => ({ loaded: true, data: s.data, error: message }))
+      } finally {
+        if (mine === seq) inFlight = false
       }
     }
     runRef.current = run

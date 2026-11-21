@@ -1,5 +1,8 @@
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import { TONE_RULE } from '../brand'
+import { formatWhen } from '../data/votes'
+import { closeAt } from '../lib/phase'
 import { validateComment } from '../lib/validate'
 import type { BattleView, Member, Side, VoteBlock } from '../lib/types'
 import { FitSide, VersusSeam } from './VersusSeam'
@@ -34,6 +37,7 @@ export function VoteSplit({
   commentsEnabled,
   mySide,
   onVote,
+  extra,
 }: {
   view: BattleView
   players: Member[]
@@ -41,6 +45,8 @@ export function VoteSplit({
   commentsEnabled: boolean
   mySide: Side | null
   onVote(side: Side, comment: string | null): Promise<void> | void
+  /** Optional extra field shown just above the vote button (the share page's name field). */
+  extra?: ReactNode
 }) {
   const [picked, setPicked] = useState<Side | null>(null)
   const [comment, setComment] = useState('')
@@ -98,7 +104,9 @@ export function VoteSplit({
       {canPick && (
         <div className="tile bg-lime">
           <h2 className="h-tile">Who wore it better?</h2>
-          <p className="sub mt-1">Tap a fit, then vote. Votes are anonymous.</p>
+          <p className="sub mt-1">
+            Tap a fit. Voting closes at {formatWhen(closeAt(view.record), new Date())}. Votes are anonymous.
+          </p>
         </div>
       )}
 
@@ -132,6 +140,7 @@ export function VoteSplit({
               onChange={(e) => setComment(e.target.value)}
             />
           )}
+          {extra}
           {error && (
             <p className="tile bg-white" role="alert">
               {error}

@@ -1,4 +1,4 @@
-import { memo, useCallback, useState } from 'react'
+import { useCallback, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { InviteQr } from '../components/InviteQr'
@@ -23,8 +23,6 @@ import {
 import { battlePhase, voteEligibility } from '../lib/phase'
 import { scoreBattle } from '../lib/scoring'
 import type { BattleView, CommentView, Group, Member, Side } from '../lib/types'
-
-const PostPanelMemo = memo(PostPanel)
 
 interface Loaded {
   view: BattleView
@@ -61,7 +59,7 @@ function Frame({ children }: { children: ReactNode }) {
 }
 
 /** Admin-only early close, with an inline confirm. Only rendered once the battle has opened. */
-function RevealNow({ battleId, onDone }: { battleId: string; onDone(): void }) {
+function RevealNow({ battleId, note, onDone }: { battleId: string; note: string | null; onDone(): void }) {
   const [confirming, setConfirming] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -94,7 +92,7 @@ function RevealNow({ battleId, onDone }: { battleId: string; onDone(): void }) {
   return (
     <div className="tile bg-white" role="alertdialog" aria-label="Confirm reveal">
       <p className="h-tile">Reveal results now for everyone?</p>
-      <p className="sub mt-1">Voting closes straight away and the points are counted.</p>
+      <p className="sub mt-1">Voting closes straight away and the points are counted. {note}</p>
       {error && <p role="alert">{error}</p>}
       <div className="mt-3 flex flex-col gap-2">
         <button type="button" className="btn" disabled={busy} onClick={go}>
@@ -129,7 +127,7 @@ export default function Battle() {
       <Frame>
         <div className="tile bg-white">
           <p className="h-tile">{error ? "Couldn't open this battle" : "We can't find this battle"}</p>
-          {error && <p className="sub mt-1">{error}</p>}
+          {error && <p className="sub mt-1">Couldn't reach Fits. Check your connection and tap Try again.</p>}
         </div>
         {error && (
           <button type="button" className="btn" onClick={() => void reload()}>
@@ -186,7 +184,7 @@ export default function Battle() {
     )
   } else if (phase === 'posting') {
     body = isBattler ? (
-      <PostPanelMemo view={view} viewerId={uid} onPosted={() => void reload()} />
+      <PostPanel view={view} viewerId={uid} onPosted={() => void reload()} />
     ) : (
       <>
         {staticSeam}
@@ -241,7 +239,14 @@ export default function Battle() {
   }
 
   // Closing before the reveal would void the battle for both players (-1 each), so never offer it in 'upcoming'.
-  const canRevealNow = isAdmin && (phase === 'posting' || phase === 'voting' || phase === 'awaiting_results')
+  const missing = [...(posted.a ? [] : [players[0]]), ...(posted.b ? [] : [players[1]])]
+  const noteFor =
+    missing.length === 0
+      ? null
+      : missing.length === 2
+        ? 'Neither fit is posted, so the battle is void and both players get −1.'
+        : `${missing[0].name} hasn't posted, so they get −1.`
+  const canRevealNow =isAdmin && (phase === 'posting' || phase === 'voting' || phase === 'awaiting_results')
 
   return (
     <Frame>
@@ -259,7 +264,7 @@ export default function Battle() {
 
       {body}
 
-      {canRevealNow && <RevealNow battleId={battleId} onDone={() => void reload()} />}
+      {canRevealNow && <RevealNow battleId={battleId} note={noteFor} onDone={() => void reload()} />}
       {isAdmin && group.allowShareVoting && phase !== 'void' && (
         <InviteQr url={`${window.location.origin}/v/${record.shareCode}`} label="Public vote link" />
       )}

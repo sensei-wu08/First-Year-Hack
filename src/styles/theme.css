@@ -366,6 +366,80 @@
   }
 }
 
+/* === S6a scoring-table === */
+@layer components {
+  .league-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-small);
+    font-variant-numeric: tabular-nums;
+  }
+  .league-table th {
+    padding: 4px 4px 8px;
+    text-align: right;
+    font-size: var(--text-caption);
+    font-weight: 600;
+    color: var(--color-muted-on-dark);
+  }
+  .league-table td {
+    padding: 9px 4px;
+    text-align: right;
+    white-space: nowrap;
+    border-top: 1px solid var(--color-line-on-dark);
+  }
+  .league-table th:nth-child(-n + 2),
+  .league-table td:nth-child(-n + 2) {
+    text-align: left;
+  }
+  .league-table tr.league-me td {
+    background: var(--color-lime);
+    color: var(--color-ink);
+    border-top-color: transparent;
+  }
+  .league-table tr.league-me td:first-child {
+    border-radius: var(--radius-input) 0 0 var(--radius-input);
+  }
+  .league-table tr.league-me td:last-child {
+    border-radius: 0 var(--radius-input) var(--radius-input) 0;
+  }
+
+}
+
+/* === S4 capture-post === */
+.cam-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 14px calc(18px + env(safe-area-inset-bottom));
+}
+.cam-shutter {
+  width: 76px;
+  height: 76px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-pink);
+  box-shadow: 0 0 0 5px var(--color-violet), 0 0 0 9px var(--color-white);
+  cursor: pointer;
+}
+.cam-shutter:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* === S3 join-groups === */
+/* Name on a fixture photo (as in mockup 1 TODAY). */
+.fixture-name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-name);
+  color: var(--color-white);
+  text-shadow: 0 1px 10px rgb(0 0 0 / 0.25);
+  max-width: 55%;
+  overflow-wrap: anywhere;
+}
+
 /* === S5 voting-results === */
 /* The seam itself (.versus, .versus-home, .versus-away, .vs-badge) lives above; this adds photo content,
    pick/dim states, the results bars and the one orchestrated reveal motion. */
@@ -529,8 +603,7 @@
 
 /* The one orchestrated motion: bars fill from the seam outwards, the winner expands, the stamp lands. */
 .reveal-bars {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
   height: 14px;
   margin-top: 12px;
   border-radius: var(--radius-pill);
@@ -539,17 +612,17 @@
 }
 .reveal-bar {
   height: 100%;
-  animation: reveal-bar-fill 900ms ease-out both;
 }
 .reveal-bar-home {
-  justify-self: end;
   background: var(--color-pink);
-  transform-origin: right center;
+  animation: reveal-bar-fill 900ms ease-out both;
 }
 .reveal-bar-away {
-  justify-self: start;
   background: var(--color-sky);
-  transform-origin: left center;
+  animation: reveal-bar-fill 900ms ease-out both;
+}
+.reveal-bars-still .reveal-bar {
+  animation: none;
 }
 .versus-won-a .versus-home {
   width: 64%;
@@ -566,6 +639,14 @@
 .versus-won-b .versus-home {
   width: 52%;
   animation: reveal-shrink 400ms ease-out 900ms both;
+}
+.versus-won-a .vs-badge {
+  left: 53%;
+  animation: reveal-badge-a 400ms ease-out 900ms both;
+}
+.versus-won-b .vs-badge {
+  left: 42%;
+  animation: reveal-badge-b 400ms ease-out 900ms both;
 }
 .reveal-stamp {
   position: absolute;
@@ -587,8 +668,15 @@
   right: 12px;
 }
 @keyframes reveal-bar-fill {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
+  from { width: 50%; }
+}
+@keyframes reveal-badge-a {
+  from { left: 50%; }
+  to { left: 53%; }
+}
+@keyframes reveal-badge-b {
+  from { left: 50%; }
+  to { left: 42%; }
 }
 @keyframes reveal-grow {
   from { width: 56%; }
@@ -605,6 +693,8 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .reveal-bar,
+  .versus-won-a .vs-badge,
+  .versus-won-b .vs-badge,
   .versus-won-a .versus-side,
   .versus-won-b .versus-side,
   .reveal-stamp {

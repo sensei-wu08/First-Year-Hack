@@ -83,7 +83,7 @@ export function ResultsReveal({
             </span>
             <span className="vr-score vr-score-away">{votesB}</span>
           </div>
-          <div className="reveal-bars" role="img" aria-label={`${people.a.name} ${pctA} percent, ${people.b.name} ${pctB} percent`}>
+          <div className={`reveal-bars${hasSplit ? "" : " reveal-bars-still"}`} role="img" aria-label={`${people.a.name} ${pctA} percent, ${people.b.name} ${pctB} percent`}>
             <div className="reveal-bar reveal-bar-home" style={{ width: `${pctA}%` }} />
             <div className="reveal-bar reveal-bar-away" style={{ width: `${pctB}%` }} />
           </div>
