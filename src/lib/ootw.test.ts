@@ -106,11 +106,19 @@ describe('outfitOfTheWeekAwards', () => {
     expect(atSundayStart[0].awardedAt).toEqual(new Date(2026, 10, 22, 0, 0))
   })
 
-  test('awarded when the latest result of the week lands on Sunday', () => {
-    const items = [played('b1', 'ana', 'ben', 9, 1, wed), played('b2', 'cal', 'dee', 2, 1, sun)]
-    expect(run(items, new Date(2026, 10, 22, 17, 59))).toEqual([])
-    const awards = run(items, new Date(2026, 10, 22, 18, 0))
-    expect(awards).toHaveLength(1)
+  test('waits while a battle in the week is still unresolved', () => {
+    const sat = played('b1', 'ana', 'ben', 9, 1, new Date(2026, 10, 21, 18, 0))
+    const pending = played('b2', 'cal', 'dee', 2, 1, sun)
+    // Sunday's battle has no result yet (resolveAll leaves it out), but its facts are passed in.
+    const facts = [sat.facts, pending.facts]
+    expect(outfitOfTheWeekAwards(facts, [sat.result], new Date(2026, 10, 22, 12, 0))).toEqual([])
+    const awards = outfitOfTheWeekAwards(facts, [sat.result, pending.result], sun)
+    expect(awards.map((a) => a.profileId)).toEqual(['ana'])
     expect(awards[0].awardedAt).toEqual(sun)
+  })
+
+  test('one award per profile per week even if both their outfits tie for top', () => {
+    const awards = run([played('b1', 'ana', 'ben', 3, 0, wed), played('b2', 'cal', 'ana', 0, 3, thu)], afterWeek)
+    expect(awards.map((a) => a.profileId)).toEqual(['ana'])
   })
 })

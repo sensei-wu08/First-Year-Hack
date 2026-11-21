@@ -1,6 +1,11 @@
 import type { TableRow } from '../lib/table'
 import Avatar from './Avatar'
 
+/** Points with a real minus sign for negatives. */
+export function formatPoints(points: number): string {
+  return points < 0 ? `−${-points}` : String(points)
+}
+
 /** Rank change since the last results. Up is lime, down is `down`; both go ink on your lime row. */
 function Movement({ n, me }: { n: number; me: boolean }) {
   const tone = me ? 'text-ink' : n > 0 ? 'text-lime' : n < 0 ? 'text-down' : 'text-muted-on-dark'
@@ -53,7 +58,7 @@ export default function LeagueTable({ rows, highlightId }: { rows: TableRow[]; h
               </td>
               <td>{r.winPct}</td>
               <td className={`font-display text-ui font-extrabold ${r.points < 0 && !me ? 'text-down' : ''}`}>
-                {r.points < 0 ? `−${-r.points}` : r.points}
+                {formatPoints(r.points)}
               </td>
             </tr>
           )

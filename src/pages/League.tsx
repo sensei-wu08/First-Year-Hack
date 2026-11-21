@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import LeagueTable from '../components/LeagueTable'
+import LeagueTable, { formatPoints } from '../components/LeagueTable'
 import { useGroupContext } from '../components/GroupLayout'
 import { useProfile } from '../data/auth'
 import { toFacts } from '../data/mappers'
@@ -16,12 +16,17 @@ function daysBetween(from: string, to: string): number {
   return Math.round((utc(to) - utc(from)) / 86_400_000)
 }
 
+function shortDate(date: string): string {
+  const [y, m, d] = date.split('-').map(Number)
+  return new Date(y, m - 1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+}
+
 function seasonLabel(season: Season | null, now: Date): string {
   if (!season) return 'Event battles'
   const total = daysBetween(season.startsOn, season.endsOn) + 1
   const today = localDateKey(now)
   if (today > season.endsOn) return `Season ${season.number} · Final table`
-  if (today < season.startsOn) return `Season ${season.number} · Starts ${season.startsOn}`
+  if (today < season.startsOn) return `Season ${season.number} · Starts ${shortDate(season.startsOn)}`
   const day = Math.min(total, daysBetween(season.startsOn, today) + 1)
   return `Season ${season.number} · Day ${day} of ${total}`
 }
@@ -90,7 +95,7 @@ export default function League() {
                 <div key={r.profileId} className={`tile tile-sm ${PODIUM_COLOURS[i]}`}>
                   <small className="block">{PODIUM_PLACES[i]}</small>
                   <b className="block font-display text-ui font-extrabold wrap-anywhere">{r.name}</b>
-                  <small className="block">{r.points} pts</small>
+                  <small className="block">{formatPoints(r.points)} pts</small>
                 </div>
               ))}
             </div>

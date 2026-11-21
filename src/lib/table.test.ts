@@ -170,4 +170,18 @@ describe('leagueTable (real resolveAll)', () => {
     expect(by(rows, 'ben')).toMatchObject({ ootw: 1, points: 5, rank: 1, movement: 2 })
     expect(by(rows, 'ana').movement).toBe(-1)
   })
+
+  test('does not award while Sunday battles are still pending, then awards the 9-1 outfit', () => {
+    const week = [
+      battle('s1', 21, 'ana', 'ben', [true, true], [3, 1]), // Sat 18:00
+      battle('s2', 22, 'cal', 'dee', [true, true], [9, 1]), // Sun 18:00
+    ]
+    const sunday = ['ana', 'ben', 'cal', 'dee'].map(m)
+    const noon = leagueTable(sunday, week, day(22, 12))
+    expect(by(noon, 'ana').ootw).toBe(0)
+    expect(by(noon, 'cal').ootw).toBe(0)
+    const evening = leagueTable(sunday, week, day(22, 18))
+    expect(by(evening, 'cal')).toMatchObject({ ootw: 1, points: 5 })
+    expect(by(evening, 'ana')).toMatchObject({ ootw: 0, points: 3 })
+  })
 })
