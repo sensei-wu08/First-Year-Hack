@@ -23,7 +23,7 @@ export function VersusSeam({
   const cls = (side: Side) =>
     [
       'versus-side',
-      side === 'a' ? 'versus-left' : 'versus-right',
+      side === 'a' ? 'versus-home bg-pink' : 'versus-away bg-sky',
       dim === side ? 'is-dim' : '',
       picked === side ? 'is-picked' : '',
     ]
@@ -33,7 +33,7 @@ export function VersusSeam({
     <div className={`versus${winner ? ` versus-won-${winner}` : ''}`}>
       <div className={cls('a')}>{left}</div>
       <div className={cls('b')}>{right}</div>
-      <div className="versus-badge">{badge}</div>
+      <div className="vs-badge">{badge}</div>
     </div>
   )
 }

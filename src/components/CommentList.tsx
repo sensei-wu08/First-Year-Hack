@@ -7,7 +7,7 @@ export function CommentList({ comments }: { comments: CommentView[] }) {
   if (comments.length === 0) return null
   return (
     <section className="flex flex-col gap-2" aria-label="Comments">
-      <h2 className="vr-heading">What people said</h2>
+      <h2 className="h-tile">What people said</h2>
       <ul className="flex flex-col gap-2">
         {comments.map((c, i) => (
           <li key={`${c.createdAt.getTime()}-${i}`} className="vr-bubble">

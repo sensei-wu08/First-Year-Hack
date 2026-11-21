@@ -38,7 +38,7 @@ async function loadShare(code: string): Promise<Loaded | null> {
 
 function Frame({ children }: { children: ReactNode }) {
   return (
-    <div className="vr-page">
+    <div className="set-vote">
       <div className="app-col">
         <div className="screen">{children}</div>
       </div>
@@ -61,7 +61,7 @@ export default function ShareVote() {
   if (!loaded) {
     return (
       <Frame>
-        <p className="vr-soft">Loading the battle</p>
+        <p className="sub">Loading the battle</p>
       </Frame>
     )
   }
@@ -69,8 +69,8 @@ export default function ShareVote() {
     return (
       <Frame>
         <div className="tile bg-white">
-          <p className="vr-heading">{error ? "Couldn't open this battle" : "This battle isn't open to public voting."}</p>
-          {error && <p className="vr-note">{error}</p>}
+          <p className="h-tile">{error ? "Couldn't open this battle" : "This battle isn't open to public voting."}</p>
+          {error && <p className="sub mt-1">{error}</p>}
         </div>
         {error && (
           <button type="button" className="btn" onClick={() => void reload()}>
@@ -128,8 +128,8 @@ export default function ShareVote() {
   if (phase === 'upcoming') {
     body = (
       <div className="tile bg-lime">
-        <p className="vr-heading">Fits drop at {formatWhen(record.revealAt, now)}</p>
-        <p className="vr-note">That's in {formatCountdown(record.revealAt.getTime() - now.getTime())}.</p>
+        <p className="h-tile">Fits drop at {formatWhen(record.revealAt, now)}</p>
+        <p className="sub mt-1">That's in {formatCountdown(record.revealAt.getTime() - now.getTime())}.</p>
       </div>
     )
   } else if (phase === 'posting') {
@@ -137,8 +137,8 @@ export default function ShareVote() {
       <>
         {staticSeam}
         <div className="tile bg-lime">
-          <p className="vr-heading">The fits are being posted</p>
-          <p className="vr-note">Voting opens when both fits are in. This page updates by itself.</p>
+          <p className="h-tile">The fits are being posted</p>
+          <p className="sub mt-1">Voting opens when both fits are in. This page updates by itself.</p>
         </div>
       </>
     )
@@ -156,7 +156,7 @@ export default function ShareVote() {
               onChange={(e) => setName(e.target.value)}
             />
             {nameError && (
-              <p className="vr-soft" role="alert">
+              <p className="sub" role="alert">
                 {nameError}
               </p>
             )}
@@ -177,8 +177,8 @@ export default function ShareVote() {
       <>
         {staticSeam}
         <div className="tile bg-lime">
-          <p className="vr-heading">Voting is closed</p>
-          <p className="vr-note">
+          <p className="h-tile">Voting is closed</p>
+          <p className="sub mt-1">
             Results at {formatWhen(record.resultsAt, now)}, in{' '}
             {formatCountdown(record.resultsAt.getTime() - now.getTime())}.
           </p>
@@ -188,7 +188,7 @@ export default function ShareVote() {
   } else if (phase === 'results') {
     body = counting ? (
       <div className="tile bg-lime">
-        <p className="vr-heading">Counting the votes</p>
+        <p className="h-tile">Counting the votes</p>
       </div>
     ) : (
       <ResultsReveal view={view} players={players} result={scoreBattle(toFacts(view), now)} comments={comments} />
@@ -196,16 +196,16 @@ export default function ShareVote() {
   } else {
     body = (
       <div className="tile bg-white">
-        <p className="vr-heading">This battle was voided</p>
+        <p className="h-tile">This battle was voided</p>
       </div>
     )
   }
 
   return (
     <Frame>
-      <p className="vr-soft">{group.name}</p>
+      <p className="sub">{group.name}</p>
       {phase !== 'results' && (
-        <h1 className="vr-title">
+        <h1 className="h-display">
           {players[0].name} vs {players[1].name}
         </h1>
       )}

@@ -31,8 +31,11 @@ export function ResultsReveal({
   const votesA = view.tally.votesA ?? 0
   const votesB = view.tally.votesB ?? 0
   const total = view.tally.total
-  const pctA = total > 0 ? Math.round((100 * votesA) / total) : 0
-  const pctB = total > 0 ? 100 - pctA : 0
+  // result.share is {a, b} as fractions of 1 (e.g. 0.625); fall back to the raw counts when it is null.
+  const fracA = result?.share ? result.share.a : total > 0 ? votesA / total : 0
+  const hasSplit = result?.share != null || total > 0
+  const pctA = hasSplit ? Math.round(100 * fracA) : 0
+  const pctB = hasSplit ? 100 - pctA : 0
 
   const kind = result?.kind ?? 'played'
   const winner: Side | null =
@@ -63,8 +66,8 @@ export function ResultsReveal({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
-        <h1 className="vr-title">{kind === 'void' || kind === 'void_both' ? 'No contest' : 'Full time'}</h1>
-        <span className="chip vr-chip-lime">
+        <h1 className="h-display">{kind === 'void' || kind === 'void_both' ? 'No contest' : 'Full time'}</h1>
+        <span className="chip bg-lime">
           {total} {total === 1 ? 'person' : 'people'} voted
         </span>
       </div>
@@ -89,23 +92,23 @@ export function ResultsReveal({
             <span>{pctB}%</span>
           </div>
           {total === 0 ? (
-            <p className="vr-note">No votes, so it counts as a draw.</p>
+            <p className="sub mt-1">No votes, so it counts as a draw.</p>
           ) : (
-            !winner && <p className="vr-note">It's a draw.</p>
+            !winner && <p className="sub mt-1">It's a draw.</p>
           )}
         </div>
       ) : (
         <div className="tile bg-white">
           {kind === 'forfeit' && forfeited.length > 0 ? (
             forfeited.map((s) => (
-              <p key={s} className="vr-heading">
+              <p key={s} className="h-tile">
                 {people[s].name} didn't post in time
               </p>
             ))
           ) : kind === 'void_both' ? (
-            <p className="vr-heading">Neither fit was posted, so this battle is void</p>
+            <p className="h-tile">Neither fit was posted, so this battle is void</p>
           ) : (
-            <p className="vr-heading">This battle was voided</p>
+            <p className="h-tile">This battle was voided</p>
           )}
         </div>
       )}

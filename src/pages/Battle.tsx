@@ -52,7 +52,7 @@ async function loadBattle(id: string): Promise<Loaded | null> {
 
 function Frame({ children }: { children: ReactNode }) {
   return (
-    <div className="vr-page">
+    <div className="set-vote">
       <div className="app-col">
         <div className="screen">{children}</div>
       </div>
@@ -93,14 +93,14 @@ function RevealNow({ battleId, onDone }: { battleId: string; onDone(): void }) {
   }
   return (
     <div className="tile bg-white" role="alertdialog" aria-label="Confirm reveal">
-      <p className="vr-heading">Reveal results now for everyone?</p>
-      <p className="vr-note">Voting closes straight away and the points are counted.</p>
+      <p className="h-tile">Reveal results now for everyone?</p>
+      <p className="sub mt-1">Voting closes straight away and the points are counted.</p>
       {error && <p role="alert">{error}</p>}
-      <div className="vr-actions">
+      <div className="mt-3 flex flex-col gap-2">
         <button type="button" className="btn" disabled={busy} onClick={go}>
           {busy ? 'Revealing' : 'Yes, reveal now'}
         </button>
-        <button type="button" className="btn vr-btn-quiet" disabled={busy} onClick={() => setConfirming(false)}>
+        <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => setConfirming(false)}>
           Keep waiting
         </button>
       </div>
@@ -120,7 +120,7 @@ export default function Battle() {
   if (!loaded) {
     return (
       <Frame>
-        <p className="vr-soft">Loading the battle</p>
+        <p className="sub">Loading the battle</p>
       </Frame>
     )
   }
@@ -128,8 +128,8 @@ export default function Battle() {
     return (
       <Frame>
         <div className="tile bg-white">
-          <p className="vr-heading">{error ? "Couldn't open this battle" : "We can't find this battle"}</p>
-          {error && <p className="vr-note">{error}</p>}
+          <p className="h-tile">{error ? "Couldn't open this battle" : "We can't find this battle"}</p>
+          {error && <p className="sub mt-1">{error}</p>}
         </div>
         {error && (
           <button type="button" className="btn" onClick={() => void reload()}>
@@ -180,8 +180,8 @@ export default function Battle() {
   if (phase === 'upcoming') {
     body = (
       <div className="tile bg-lime">
-        <p className="vr-heading">Fits drop at {formatWhen(record.revealAt, now)}</p>
-        <p className="vr-note">That's in {formatCountdown(record.revealAt.getTime() - now.getTime())}.</p>
+        <p className="h-tile">Fits drop at {formatWhen(record.revealAt, now)}</p>
+        <p className="sub mt-1">That's in {formatCountdown(record.revealAt.getTime() - now.getTime())}.</p>
       </div>
     )
   } else if (phase === 'posting') {
@@ -191,8 +191,8 @@ export default function Battle() {
       <>
         {staticSeam}
         <div className="tile bg-lime">
-          <p className="vr-heading">The fits are being posted</p>
-          <p className="vr-note">
+          <p className="h-tile">The fits are being posted</p>
+          <p className="sub mt-1">
             {players[0].name} {posted.a ? 'has posted' : "hasn't posted yet"}. {players[1].name}{' '}
             {posted.b ? 'has posted' : "hasn't posted yet"}. Voting opens when both fits are in.
           </p>
@@ -215,8 +215,8 @@ export default function Battle() {
       <>
         {staticSeam}
         <div className="tile bg-lime">
-          <p className="vr-heading">Voting is closed</p>
-          <p className="vr-note">
+          <p className="h-tile">Voting is closed</p>
+          <p className="sub mt-1">
             Results at {formatWhen(record.resultsAt, now)}, in{' '}
             {formatCountdown(record.resultsAt.getTime() - now.getTime())}.
           </p>
@@ -226,7 +226,7 @@ export default function Battle() {
   } else if (phase === 'results') {
     body = counting ? (
       <div className="tile bg-lime">
-        <p className="vr-heading">Counting the votes</p>
+        <p className="h-tile">Counting the votes</p>
       </div>
     ) : (
       <ResultsReveal view={view} players={players} result={scoreBattle(toFacts(view), now)} comments={comments} />
@@ -234,8 +234,8 @@ export default function Battle() {
   } else {
     body = (
       <div className="tile bg-white">
-        <p className="vr-heading">This battle was voided</p>
-        <p className="vr-note">One of the players left the group before it finished.</p>
+        <p className="h-tile">This battle was voided</p>
+        <p className="sub mt-1">One of the players left the group before it finished.</p>
       </div>
     )
   }
@@ -252,7 +252,7 @@ export default function Battle() {
         <PhaseBadge phase={phase} />
       </div>
       {phase !== 'results' && (
-        <h1 className="vr-title">
+        <h1 className="h-display">
           {players[0].name} vs {players[1].name}
         </h1>
       )}

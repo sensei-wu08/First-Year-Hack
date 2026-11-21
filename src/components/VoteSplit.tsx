@@ -63,7 +63,7 @@ export function VoteSplit({
     return (
       <>
         <FitSide member={m} post={postOf(m.id)} note="Waiting for this fit" />
-        {voted === side && <span className="chip vr-chip-ink versus-chip">Your pick</span>}
+        {voted === side && <span className="chip bg-ink versus-chip">Your pick</span>}
         {canPick && (
           <button
             type="button"
@@ -97,8 +97,8 @@ export function VoteSplit({
     <div className="flex flex-col gap-3">
       {canPick && (
         <div className="tile bg-lime">
-          <h2 className="vr-heading">Who wore it better?</h2>
-          <p className="vr-note">Tap a fit, then vote. Votes are anonymous.</p>
+          <h2 className="h-tile">Who wore it better?</h2>
+          <p className="sub mt-1">Tap a fit, then vote. Votes are anonymous.</p>
         </div>
       )}
 
@@ -112,19 +112,19 @@ export function VoteSplit({
 
       {voted ? (
         <div className="tile bg-white" role="status">
-          <p className="vr-heading">{backed ? `You voted for ${backed.name}` : "You've already voted"}</p>
-          <p className="vr-note">{votesLabel(view.tally.total)}. Results come when voting closes.</p>
+          <p className="h-tile">{backed ? `You voted for ${backed.name}` : "You've already voted"}</p>
+          <p className="sub mt-1">{votesLabel(view.tally.total)}. Results come when voting closes.</p>
         </div>
       ) : block !== 'ok' ? (
         <div className="tile bg-white" role="status">
-          <p className="vr-heading">{BLOCK_MESSAGES[block]}</p>
-          {view.tally.total > 0 && <p className="vr-note">{votesLabel(view.tally.total)}</p>}
+          <p className="h-tile">{BLOCK_MESSAGES[block]}</p>
+          {view.tally.total > 0 && <p className="sub mt-1">{votesLabel(view.tally.total)}</p>}
         </div>
       ) : (
         <>
           {commentsEnabled && (
             <textarea
-              className="input vr-textarea"
+              className="input h-16"
               aria-label="Comment"
               placeholder={TONE_RULE}
               maxLength={280}
