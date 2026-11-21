@@ -3,7 +3,7 @@ import LeagueTable, { formatPoints } from '../components/LeagueTable'
 import { useGroupContext } from '../components/GroupLayout'
 import { useProfile } from '../data/auth'
 import { friendlyError } from '../data/groups'
-import { postedOf, toFacts } from '../data/mappers'
+import { toFacts } from '../data/mappers'
 import { currentSeason, listBattles } from '../data/reads'
 import { localDateKey, shortDate } from '../lib/time'
 import { leagueTable, type TableRow } from '../lib/table'
@@ -61,14 +61,9 @@ export default function League() {
         // Everyone still in the group, plus anyone who left but has battles in this table.
         const inBattles = new Set(battles.flatMap((b) => [b.record.playerA, b.record.playerB]))
         const tableMembers = members.filter((m) => !m.leftAt || inBattles.has(m.id))
-        // Both fits posted but the split isn't back yet (this phone's clock is ahead of the server's): wait for the next poll.
-        const facts = battles
-          .filter((b) => {
-            const p = postedOf(b)
-            return !(p.a && p.b && b.tally.votesA === null && b.record.voidedAt === null)
-          })
-          .map(toFacts)
-        setData({ rows: leagueTable(tableMembers, facts, now), label: seasonLabel(season, now) })
+        // Keep every battle in the facts: unresolved ones must stay visible so Outfit of the Week
+        // waits for the whole week. A brief clock-skew flicker self-corrects on the next 15 s poll.
+        setData({ rows: leagueTable(tableMembers, battles.map(toFacts), now), label: seasonLabel(season, now) })
         setError(null)
         loadedOnce = true
       } catch (e) {
