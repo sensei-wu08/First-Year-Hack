@@ -271,6 +271,7 @@ export default function Battle() {
         </Link>
         <PhaseBadge phase={phase} />
       </div>
+      <p className="h-tile">FITS - Whose Is Better?</p>
       {phase !== 'results' && (
         <h1 className="h-display">
           {players[0].name} vs {players[1].name}
