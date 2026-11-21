@@ -704,3 +704,101 @@
     transition: none;
   }
 }
+
+/* === S10 chat === */
+/* Fills the screen above the nav pill (8 + 64 + 14px) so the list scrolls and the composer stays put. */
+.chat-screen {
+  height: calc(100dvh - 86px - env(safe-area-inset-bottom));
+  padding-bottom: 8px;
+}
+.chat-list {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+/* Short conversations sit at the bottom, as in the mockup. */
+.chat-list > :first-child {
+  margin-top: auto;
+}
+.chat-msg {
+  align-self: flex-start;
+  max-width: 80%;
+  padding: 10px 12px;
+  border-radius: var(--radius-bubble) var(--radius-bubble) var(--radius-bubble) 6px;
+  color: var(--color-ink);
+  font-size: var(--text-body);
+}
+.chat-msg small {
+  display: block;
+  font-size: var(--text-caption);
+  font-weight: 800;
+  opacity: 0.75;
+}
+.chat-msg .chat-body {
+  display: block;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.chat-report {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--text-caption);
+}
+.chat-mine {
+  align-self: flex-end;
+  border-radius: var(--radius-bubble) var(--radius-bubble) 6px var(--radius-bubble);
+  background: var(--color-lime);
+}
+.chat-sky {
+  background: var(--color-sky);
+}
+.chat-tangerine {
+  background: var(--color-tangerine);
+}
+.chat-pink {
+  background: var(--color-pink);
+}
+.chat-mint {
+  background: var(--color-mint);
+}
+.chat-lavender {
+  background: var(--color-lavender);
+}
+.chat-composer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.chat-input {
+  flex: 1;
+  min-width: 0;
+  border-radius: var(--radius-pill);
+}
+.chat-send {
+  flex: none;
+  width: 50px;
+  height: 50px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-lime);
+  color: var(--color-ink);
+  font-size: var(--text-small);
+  font-weight: 800;
+  cursor: pointer;
+}
+.chat-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.chat-error {
+  color: var(--color-white);
+  background: var(--color-down);
+  border-radius: var(--radius-input);
+  padding: 6px 12px;
+  font-size: var(--text-small);
+  font-weight: 700;
+}
