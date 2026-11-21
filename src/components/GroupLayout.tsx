@@ -70,12 +70,13 @@ export default function GroupLayout() {
             <p className="panel">You're not in this group. Ask for an invite link.</p>
             <Link to="/" className="btn">Go home</Link>
           </div>
-        ) : error ? (
+        ) : error && !(ctx && ctx.group.id === groupId) ? (
           <div className="screen">
-            <p className="panel">Couldn't open this group. {error}</p>
+            <p className="panel">Couldn't open this group. Check your connection and try again.</p>
             <button className="btn" onClick={() => setTick((t) => t + 1)}>Try again</button>
           </div>
-        ) : ctx ? (
+        ) : ctx && ctx.group.id === groupId ? (
+          // A failed background reload keeps the last good data on screen (flaky venue Wi-Fi).
           <Outlet context={{ ...ctx, reload: () => setTick((t) => t + 1) } satisfies GroupContext} />
         ) : (
           <div className="screen">

@@ -24,6 +24,14 @@ if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY)
         </BrowserRouter>
       </StrictMode>,
     )
+  }).catch(() => {
+    // The app chunk failed to load (usually a dropped connection mid-deploy): offer a reload.
+    root.render(
+      <div className="screen">
+        <p className="panel" role="alert">Couldn't load Fits. Check your connection.</p>
+        <button className="btn" onClick={() => location.reload()}>Reload</button>
+      </div>,
+    )
   })
 } else {
   root.render(
