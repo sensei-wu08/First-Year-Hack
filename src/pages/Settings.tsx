@@ -8,7 +8,7 @@ import { friendlyError } from '../data/groups'
 import { currentSeason } from '../data/reads'
 import { leaveGroup, redateUpcoming, startSeason, updateGroupSettings } from '../data/seasons'
 import { defaultBattlesPerDay } from '../lib/scheduler'
-import { addDays, localDateKey, monthKey } from '../lib/time'
+import { addDays, atLocalTime, localDateKey, monthKey } from '../lib/time'
 import type { Group, Season } from '../lib/types'
 
 interface Form {
@@ -35,6 +35,8 @@ function explain(e: unknown, fallback: string): string {
   const m = (e instanceof Error ? e.message : '').toLowerCase()
   if (m.includes('season_active')) return 'A season is already running. You can start the next one when it ends.'
   if (m.includes('need_members')) return 'You need at least 2 active members to start a season.'
+  if (m.includes('season_end_not_moved'))
+    return "The battles moved, but the season end date didn't. Ask whoever runs the database to apply the latest migration, then save again."
   if (m.includes('bad_players')) return 'Someone in the schedule has left the group. Reload and try again.'
   return friendlyError(e, fallback)
 }
@@ -101,6 +103,7 @@ export default function Settings() {
   }, [loadSeason])
 
   const today = localDateKey(new Date())
+  const firstStart = atLocalTime(today, group.revealTime) > new Date() ? today : addDays(today, 1)
   const seasonActive = season !== null && season.endsOn >= today
   const saved = fromGroup(group)
   const dirty = (Object.keys(form) as (keyof Form)[]).some((k) => form[k] !== saved[k])
@@ -335,7 +338,7 @@ export default function Settings() {
                 type="date"
                 className="input"
                 value={startDate}
-                min={today}
+                min={firstStart}
                 onChange={(e) => setStartDate(e.target.value)}
                 disabled={seasonActive}
               />

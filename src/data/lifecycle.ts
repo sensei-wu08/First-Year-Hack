@@ -1,5 +1,5 @@
 import type { Group, Member } from '../lib/types'
-import { localDateKey } from '../lib/time'
+import { addDays, atLocalTime, localDateKey } from '../lib/time'
 import { currentSeason } from './reads'
 import { startSeason } from './seasons'
 
@@ -16,8 +16,13 @@ async function run(group: Group, members: Member[]): Promise<void> {
     if (members.length < 2) return
     const latest = await currentSeason(group.id)
     // Only roll over a season that has finished. Groups with no season (custom battles only) stay as they are.
-    if (!latest || latest.endsOn >= localDateKey(new Date())) return
-    await startSeason(group, members.map((m) => m.id), localDateKey(new Date()))
+    const now = new Date()
+    const today = localDateKey(now)
+    if (!latest || latest.endsOn >= today) return
+    // Start today only while today's reveal time is still ahead. Otherwise today's battles would already be
+    // past their post deadline and resolve as void, costing everyone -1. Start tomorrow instead.
+    const start = atLocalTime(today, group.revealTime) > now ? today : addDays(today, 1)
+    await startSeason(group, members.map((m) => m.id), start, { auto: true })
   } catch (e) {
     // Someone else started the next season first (or it is still running): nothing to do.
     // Anything else must not break the group screen either, so it is only logged.

@@ -35,8 +35,16 @@ export async function updateGroupSettings(groupId: string, patch: GroupSettingsP
   if (!data || data.length === 0) throw new DataError('not_allowed')
 }
 
-/** Schedules a season for `memberIds` from `startDate` and saves it. Returns the new season id. */
-export async function startSeason(group: Group, memberIds: string[], startDate: string): Promise<string> {
+/**
+ * Schedules a season for `memberIds` from `startDate` and saves it. Returns the new season id.
+ * The manual "Start season" button uses create_season; `auto: true` (lifecycle) uses start_next_season.
+ */
+export async function startSeason(
+  group: Group,
+  memberIds: string[],
+  startDate: string,
+  opts: { auto?: boolean } = {},
+): Promise<string> {
   await ensureSession()
   if (memberIds.length < 2) throw new DataError('need_members')
   const perDay = Math.max(1, group.battlesPerDay ?? defaultBattlesPerDay(memberIds.length))
@@ -48,7 +56,8 @@ export async function startSeason(group: Group, memberIds: string[], startDate: 
     rng: mulberry32(Date.now() % 2 ** 31),
   })
   const endsOn = scheduled.reduce((last, b) => (b.date > last ? b.date : last), startDate)
-  const { data, error } = await supabase.rpc('create_season', {
+  // The automatic path uses start_next_season (0002): it applies the "no overlap" rule to everyone, admin included.
+  const { data, error } = await supabase.rpc(opts.auto ? 'start_next_season' : 'create_season', {
     p_group: group.id,
     p_starts: startDate,
     p_ends: endsOn,
@@ -69,22 +78,24 @@ export async function updateBattleTimes(
   rows: { id: string; revealAt: Date; postDeadline: Date; resultsAt: Date }[],
 ): Promise<void> {
   await ensureSession()
-  const results = await Promise.all(
-    rows.map((r) =>
-      supabase
-        .from('battles')
-        .update({
-          reveal_at: r.revealAt.toISOString(),
-          post_deadline: r.postDeadline.toISOString(),
-          results_at: r.resultsAt.toISOString(),
-        })
-        .eq('id', r.id)
-        .select('id'),
-    ),
-  )
-  for (const { data, error } of results) {
-    if (error) throw new DataError(error.message, error.code)
-    if (!data || data.length === 0) throw new DataError('not_allowed')
+  for (let i = 0; i < rows.length; i += 10) {
+    const results = await Promise.all(
+      rows.slice(i, i + 10).map((r) =>
+        supabase
+          .from('battles')
+          .update({
+            reveal_at: r.revealAt.toISOString(),
+            post_deadline: r.postDeadline.toISOString(),
+            results_at: r.resultsAt.toISOString(),
+          })
+          .eq('id', r.id)
+          .select('id'),
+      ),
+    )
+    for (const { data, error } of results) {
+      if (error) throw new DataError(error.message, error.code)
+      if (!data || data.length === 0) throw new DataError('not_allowed')
+    }
   }
 }
 
@@ -115,7 +126,7 @@ export async function redateUpcoming(
   // Start today only if nothing has been revealed today yet (otherwise a player could battle twice in a day)
   // and the new reveal time is still ahead. Otherwise start tomorrow.
   const today = localDateKey(now)
-  const revealedToday = live.some((v) => v.record.revealAt <= now && localDateKey(v.record.revealAt) === today)
+  const revealedToday = views.some((v) => v.record.revealAt <= now && localDateKey(v.record.revealAt) === today)
   const fromDate = !revealedToday && atLocalTime(today, times.reveal) > now ? today : addDays(today, 1)
 
   const moved = redateRemaining({
@@ -126,15 +137,16 @@ export async function redateUpcoming(
   })
   await updateBattleTimes(moved)
 
-  // Best effort: needs the seasons_update policy from 0002_settings.sql.
   const dates = [
     ...moved.map((r) => r.date),
     ...live.filter((v) => v.record.revealAt <= now).map((v) => localDateKey(v.record.revealAt)),
   ]
   const endsOn = dates.reduce((m, d) => (d > m ? d : m), season.startsOn)
-  if (endsOn !== season.endsOn) {
-    const { error } = await supabase.from('seasons').update({ ends_on: endsOn }).eq('id', season.id)
-    if (error) console.warn('Could not move the season end date', error.message)
-  }
+  if (endsOn === season.endsOn) return moved.length
+
+  // Needs the seasons_update policy from 0002_settings.sql. PostgREST returns 0 rows (no error) without it.
+  const { data, error } = await supabase.from('seasons').update({ ends_on: endsOn }).eq('id', season.id).select('id')
+  if (error) throw new DataError(error.message, error.code)
+  if (!data || data.length === 0) throw new DataError('season_end_not_moved')
   return moved.length
 }
