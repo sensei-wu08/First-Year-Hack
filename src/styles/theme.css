@@ -440,6 +440,369 @@
   overflow-wrap: anywhere;
 }
 
+/* === S5 voting-results === */
+/* The seam itself (.versus, .versus-home, .versus-away, .vs-badge) lives above; this adds photo content,
+   pick/dim states, the results bars and the one orchestrated reveal motion. */
+.versus-side {
+  transition: opacity 0.25s ease, filter 0.25s ease, transform 0.25s ease;
+  color: var(--color-white);
+}
+.versus-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.versus-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 6px;
+  padding: 16px 28px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.versus-emoji {
+  font-size: 56px;
+  line-height: 1;
+}
+.versus-name {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  max-width: 60%;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-name);
+  line-height: 1.1;
+  color: var(--color-white);
+  text-shadow: 0 1px 10px var(--color-shade);
+  overflow-wrap: anywhere;
+}
+.versus-away .versus-name {
+  left: auto;
+  right: 12px;
+  text-align: right;
+}
+.versus-chip {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+}
+.versus-away .versus-chip {
+  left: auto;
+  right: 12px;
+}
+.versus-hit {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.versus-hit:focus-visible {
+  outline: 3px solid var(--color-lime);
+  outline-offset: -6px;
+}
+.versus-side.is-picked {
+  transform: scale(1.03);
+  z-index: 1;
+}
+.versus-side.is-picked::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 0 5px var(--color-lime);
+  pointer-events: none;
+}
+.versus-side.is-dim {
+  opacity: 0.5;
+  filter: saturate(0.4) brightness(0.85);
+}
+
+/* Results tile */
+.vr-score {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(40px, 16vw, var(--text-score));
+  line-height: 0.9;
+}
+.vr-score-home {
+  color: var(--color-pink);
+}
+.vr-score-away {
+  color: var(--color-sky);
+}
+.vr-vs-names {
+  font-size: var(--text-small);
+  font-weight: 700;
+  text-align: center;
+}
+.vr-pct {
+  margin-top: 6px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-small);
+}
+.vr-points {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 700;
+}
+.vr-points-value {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-tile);
+}
+.vr-down {
+  color: var(--color-down);
+}
+.vr-bubble {
+  border-radius: var(--radius-bubble) var(--radius-bubble) var(--radius-bubble) 6px;
+  padding: 10px 12px;
+  background: var(--color-sky);
+  color: var(--color-ink);
+  font-size: var(--text-body);
+}
+.vr-bubble:nth-child(4n + 2) {
+  background: var(--color-tangerine);
+}
+.vr-bubble:nth-child(4n + 3) {
+  background: var(--color-mint);
+}
+.vr-bubble:nth-child(4n) {
+  background: var(--color-lavender);
+}
+.vr-bubble-name {
+  font-size: var(--text-caption);
+  font-weight: 800;
+}
+.report-btn {
+  border: 0;
+  background: none;
+  padding: 2px 0;
+  font-size: var(--text-caption);
+  font-weight: 700;
+  color: var(--color-ink);
+  opacity: 0.7;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.report-btn:disabled {
+  cursor: default;
+}
+.report-btn-done {
+  text-decoration: none;
+}
+
+/* The one orchestrated motion: bars fill from the seam outwards, the winner expands, the stamp lands. */
+.reveal-bars {
+  display: flex;
+  height: 14px;
+  margin-top: 12px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--color-line);
+}
+.reveal-bar {
+  height: 100%;
+}
+.reveal-bar-home {
+  background: var(--color-pink);
+  animation: reveal-bar-fill 900ms ease-out both;
+}
+.reveal-bar-away {
+  background: var(--color-sky);
+  animation: reveal-bar-fill 900ms ease-out both;
+}
+.reveal-bars-still .reveal-bar {
+  animation: none;
+}
+.versus-won-a .versus-home {
+  width: 64%;
+  animation: reveal-grow 400ms ease-out 900ms both;
+}
+.versus-won-a .versus-away {
+  width: 52%;
+  animation: reveal-shrink 400ms ease-out 900ms both;
+}
+.versus-won-b .versus-away {
+  width: 64%;
+  animation: reveal-grow 400ms ease-out 900ms both;
+}
+.versus-won-b .versus-home {
+  width: 52%;
+  animation: reveal-shrink 400ms ease-out 900ms both;
+}
+.versus-won-a .vs-badge {
+  left: 53%;
+  animation: reveal-badge-a 400ms ease-out 900ms both;
+}
+.versus-won-b .vs-badge {
+  left: 42%;
+  animation: reveal-badge-b 400ms ease-out 900ms both;
+}
+.reveal-stamp {
+  position: absolute;
+  z-index: 3;
+  top: 12px;
+  left: 12px;
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  background: var(--color-lime);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-tile);
+  transform: rotate(-8deg);
+  animation: reveal-stamp-in 450ms cubic-bezier(0.2, 1.5, 0.4, 1) 1300ms both;
+}
+.reveal-stamp-b {
+  left: auto;
+  right: 12px;
+}
+@keyframes reveal-bar-fill {
+  from { width: 50%; }
+}
+@keyframes reveal-badge-a {
+  from { left: 50%; }
+  to { left: 53%; }
+}
+@keyframes reveal-badge-b {
+  from { left: 50%; }
+  to { left: 42%; }
+}
+@keyframes reveal-grow {
+  from { width: 56%; }
+  to { width: 64%; }
+}
+@keyframes reveal-shrink {
+  from { width: 56%; }
+  to { width: 52%; }
+}
+@keyframes reveal-stamp-in {
+  from { transform: rotate(-8deg) scale(1.8); opacity: 0; }
+  60% { opacity: 1; }
+  to { transform: rotate(-8deg) scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal-bar,
+  .versus-won-a .vs-badge,
+  .versus-won-b .vs-badge,
+  .versus-won-a .versus-side,
+  .versus-won-b .versus-side,
+  .reveal-stamp {
+    animation: none;
+  }
+  .versus-side {
+    transition: none;
+  }
+}
+
+/* === S10 chat === */
+/* Fills the screen above the nav pill (8 + 64 + 14px) so the list scrolls and the composer stays put. */
+.chat-screen {
+  height: calc(100dvh - 86px - env(safe-area-inset-bottom));
+  padding-bottom: 8px;
+}
+.chat-list {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+/* Short conversations sit at the bottom, as in the mockup. */
+.chat-list > :first-child {
+  margin-top: auto;
+}
+.chat-msg {
+  align-self: flex-start;
+  max-width: 80%;
+  padding: 10px 12px;
+  border-radius: var(--radius-bubble) var(--radius-bubble) var(--radius-bubble) 6px;
+  color: var(--color-ink);
+  font-size: var(--text-body);
+}
+.chat-msg small {
+  display: block;
+  font-size: var(--text-caption);
+  font-weight: 800;
+  opacity: 0.75;
+}
+.chat-msg .chat-body {
+  display: block;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.chat-report {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--text-caption);
+}
+.chat-mine {
+  align-self: flex-end;
+  border-radius: var(--radius-bubble) var(--radius-bubble) 6px var(--radius-bubble);
+  background: var(--color-lime);
+}
+.chat-sky {
+  background: var(--color-sky);
+}
+.chat-tangerine {
+  background: var(--color-tangerine);
+}
+.chat-pink {
+  background: var(--color-pink);
+}
+.chat-mint {
+  background: var(--color-mint);
+}
+.chat-lavender {
+  background: var(--color-lavender);
+}
+.chat-composer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.chat-input {
+  flex: 1;
+  min-width: 0;
+  border-radius: var(--radius-pill);
+}
+.chat-send {
+  flex: none;
+  width: 50px;
+  height: 50px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-lime);
+  color: var(--color-ink);
+  font-size: var(--text-small);
+  font-weight: 800;
+  cursor: pointer;
+}
+.chat-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.chat-error {
+  color: var(--color-white);
+  background: var(--color-down);
+  border-radius: var(--radius-input);
+  padding: 6px 12px;
+  font-size: var(--text-small);
+  font-weight: 700;
+}
+
 /* === S7 settings-scheduler === */
 @layer components {
   /* Settings rows inside a tile (mockup 7): label left, chip or toggle right. */
