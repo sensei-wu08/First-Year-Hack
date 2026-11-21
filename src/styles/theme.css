@@ -439,3 +439,67 @@
   max-width: 55%;
   overflow-wrap: anywhere;
 }
+
+/* === S7 settings-scheduler === */
+@layer components {
+  /* Settings rows inside a tile (mockup 7): label left, chip or toggle right. */
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 0;
+    border-top: 1px solid var(--color-line);
+  }
+  .setting-row:first-child {
+    border-top: 0;
+  }
+  .setting-row > b {
+    font-weight: 600;
+  }
+  /* A time or number field that sits inside a coloured chip. */
+  .chip-input {
+    width: 5.5em;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    font: inherit;
+    font-weight: 700;
+    text-align: center;
+  }
+  .chip-input::placeholder {
+    color: var(--color-muted);
+  }
+  /* Switch: violet when on, ink 18% when off. */
+  .toggle {
+    position: relative;
+    flex: none;
+    width: 46px;
+    height: 28px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: rgb(23 11 59 / 0.18);
+    cursor: pointer;
+  }
+  .toggle::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--color-white);
+  }
+  .toggle[aria-checked="true"] {
+    background: var(--color-violet);
+  }
+  .toggle[aria-checked="true"]::after {
+    left: 21px;
+  }
+  .toggle:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+}
