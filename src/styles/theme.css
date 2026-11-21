@@ -3,47 +3,66 @@
 
 @theme {
   /* Colour */
-  --color-ink: #1E1238;
+  --color-violet: #5B34F2;
+  --color-ink: #170B3B;
   --color-white: #FFFFFF;
-  --color-lilac: #CDB8FF;
-  --color-mint: #8FE3BF;
-  --color-butter: #FFE066;
-  --color-tangerine: #FF8A3D;
-  --color-home: #FF3E8A;
-  --color-away: #2B44FF;
-  --color-muted: rgba(30, 18, 56, 0.72);
-  --color-line: rgba(30, 18, 56, 0.14);
-  --color-up: #0F7A55;
-  --color-down: #D93A3F;
-  --color-shade: rgba(30, 18, 56, 0.5);
+  --color-lime: #D6FF4F;
+  --color-pink: #FF4FA0;
+  --color-sky: #47C6FF;
+  --color-tangerine: #FF8A2A;
+  --color-mint: #5BE3B0;
+  --color-lavender: #B9A4FF;
+  --color-down: #FF5C5C;
+
+  /* Text and lines: on-light (ink based) and on-dark (white based) */
+  --color-muted: rgb(23 11 59 / 0.72);
+  --color-line: rgb(23 11 59 / 0.14);
+  --color-muted-on-dark: rgb(255 255 255 / 0.72);
+  --color-line-on-dark: rgb(255 255 255 / 0.18);
+
+  /* Deprecated aliases: keep so older branches still compile. Use the names above. */
+  --color-home: var(--color-pink);
+  --color-away: var(--color-sky);
+  --color-up: var(--color-lime);
+  --color-lilac: var(--color-lavender);
+  --color-butter: var(--color-lime);
+  --color-shade: rgb(23 11 59 / 0.5);
 
   /* Fonts */
-  --font-display: "Bodoni Moda", "Didot", Georgia, serif;
-  --font-body: "Schibsted Grotesk", system-ui, sans-serif;
+  --font-display: "Unbounded", system-ui, sans-serif;
+  --font-body: "Plus Jakarta Sans", system-ui, sans-serif;
 
-  /* Radii: photo 24, panel 18, input 12, buttons are pills */
+  /* Radii: tile 28, photo 24, input 16, bubble 20, buttons/chips/nav are pills */
+  --radius-tile: 28px;
   --radius-photo: 24px;
-  --radius-sheet: 18px;
-  --radius-input: 12px;
+  --radius-input: 16px;
+  --radius-bubble: 20px;
   --radius-pill: 999px;
+  --radius-sheet: 28px; /* deprecated alias of --radius-tile */
 
-  /* Type scale (px): 13 / 15 / 17 / 22 / 32 / 40 / 56 / 104 */
-  --text-caption: 13px;
-  --text-small: 15px;
-  --text-body: 17px;
-  --text-title: 22px;
-  --text-score: 32px;
-  --text-h1: 40px;
-  --text-big: 56px;
-  --text-hero: 104px;
+  /* Type scale (px): 12 / 13 / 15 / 16 / 18 / 20 / 28 / 84 / 132 */
+  --text-caption: 12px;
+  --text-small: 13px;
+  --text-body: 15px;
+  --text-ui: 16px;
+  --text-name: 18px;
+  --text-tile: 20px;
+  --text-heading: 28px;
+  --text-score: 84px;
+  --text-hero: 132px;
 
-  /* The one shadow: photos and the versus card only */
-  --shadow-photo: 0 18px 30px -18px rgba(30, 18, 56, 0.5);
+  /* Deprecated type aliases */
+  --text-title: 20px;
+  --text-h1: 28px;
+  --text-big: 84px;
+
+  /* No drop shadows in this design */
+  --shadow-photo: none;
 }
 
 @layer base {
   body {
-    @apply bg-lilac text-ink font-body;
+    @apply bg-violet text-white font-body;
     font-size: 15px;
     line-height: 1.45;
   }
@@ -52,209 +71,299 @@
   textarea {
     font: inherit;
   }
+  table,
+  td,
+  th {
+    font-variant-numeric: tabular-nums;
+  }
   button:focus-visible,
   a:focus-visible,
   input:focus-visible,
   textarea:focus-visible {
-    outline: 3px solid var(--color-away);
+    outline: 3px solid var(--color-lime);
     outline-offset: 2px;
   }
 }
 
-/* ---------- Sets: every screen owns a colour plus an arch backdrop ---------- */
-.set-today,
-.set-vote,
-.set-results,
-.set-league,
-.set-chat,
-.set-group,
-.set-join,
-.set-capture,
-.set-wrapped {
-  --bg: var(--color-lilac);
-  --arch: rgba(255, 255, 255, 0.35);
-  position: relative;
-  min-height: 100dvh;
-  background: var(--bg);
-  isolation: isolate;
-}
-.set-today::before,
-.set-vote::before,
-.set-results::before,
-.set-league::before,
-.set-chat::before,
-.set-group::before,
-.set-join::before,
-.set-capture::before,
-.set-wrapped::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  left: 50%;
-  top: 70px;
-  width: 330px;
-  max-width: 100%;
-  height: 620px;
-  transform: translateX(-50%);
-  border-radius: 165px 165px 0 0;
-  background: var(--arch);
-  pointer-events: none;
-}
-.set-today { --bg: var(--color-lilac); --arch: rgba(255, 255, 255, 0.35); }
-.set-vote { --bg: var(--color-butter); --arch: rgba(255, 255, 255, 0.45); }
-.set-results { --bg: var(--color-home); --arch: rgba(255, 224, 102, 0.55); }
-.set-league { --bg: var(--color-mint); --arch: rgba(255, 255, 255, 0.4); }
-.set-chat { --bg: var(--color-butter); --arch: rgba(255, 255, 255, 0.45); }
-.set-group { --bg: var(--color-tangerine); --arch: rgba(255, 224, 102, 0.5); }
-.set-join { --bg: var(--color-tangerine); --arch: rgba(205, 184, 255, 0.6); }
-.set-capture { --bg: var(--color-ink); --arch: rgba(205, 184, 255, 0.12); color: var(--color-white); }
-.set-wrapped { --bg: var(--color-away); --arch: rgba(255, 62, 138, 0.85); color: var(--color-white); }
+/* Component classes live in the components layer so Tailwind utilities (bg-*, text-*) can override them. */
+@layer components {
+  /* ---------- Sets: every screen is the violet canvas; capture is ink ---------- */
+  .set-today,
+  .set-vote,
+  .set-results,
+  .set-league,
+  .set-chat,
+  .set-group,
+  .set-join,
+  .set-capture,
+  .set-wrapped {
+    position: relative;
+    min-height: 100dvh;
+    background: var(--color-violet);
+    color: var(--color-white);
+  }
+  .set-capture {
+    --viewfinder: #2A1A63;
+    background: var(--color-ink);
+  }
 
-.set-capture .sub,
-.set-wrapped .sub {
-  color: rgba(255, 255, 255, 0.75);
-}
+  /* ---------- App frame ---------- */
+  .app-col {
+    width: 100%;
+    max-width: 430px;
+    margin-inline: auto;
+  }
+  .screen {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 6px 14px 0;
+  }
 
-/* ---------- App frame ---------- */
-.app-col {
-  width: 100%;
-  max-width: 430px;
-  margin-inline: auto;
-}
-.screen {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 8px 20px 24px;
-}
+  /* ---------- Floating nav: ink pill, lime active tab ---------- */
+  .bottom-nav {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    width: 100%;
+    max-width: 430px;
+    margin-inline: auto;
+  }
+  .nav-pill {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    height: 64px;
+    margin: 8px 14px calc(14px + env(safe-area-inset-bottom));
+    padding: 6px;
+    border-radius: var(--radius-pill);
+    background: var(--color-ink);
+    font-size: var(--text-caption);
+    font-weight: 700;
+    color: rgb(255 255 255 / 0.55);
+  }
+  .nav-pill a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-pill);
+    color: inherit;
+    text-decoration: none;
+  }
+  .nav-pill a.active {
+    background: var(--color-lime);
+    color: var(--color-ink);
+  }
 
-/* ---------- Bottom nav (sticky, ink; active dot takes the tab's set colour) ---------- */
-.bottom-nav {
-  position: sticky;
-  bottom: 0;
-  z-index: 10;
-  background: var(--color-ink);
-  padding-bottom: env(safe-area-inset-bottom);
-}
-.bottom-nav-inner {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  height: 72px;
-  max-width: 430px;
-  margin-inline: auto;
-}
-.bottom-nav a {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  font-size: 12px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
-  text-decoration: none;
-}
-.bottom-nav a i {
-  display: block;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: currentColor;
-  opacity: 0.5;
-}
-.bottom-nav a.active {
-  color: var(--color-white);
-}
-.bottom-nav a.active i {
-  opacity: 1;
-}
-.bottom-nav a.nav-today.active i { background: var(--color-lilac); }
-.bottom-nav a.nav-league.active i { background: var(--color-mint); }
-.bottom-nav a.nav-chat.active i { background: var(--color-butter); }
-.bottom-nav a.nav-group.active i { background: var(--color-tangerine); }
+  /* ---------- Type ---------- */
+  .h-display {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: var(--text-heading);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+  }
+  .h-tile {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: var(--text-tile);
+    line-height: 1.1;
+  }
+  .sub {
+    color: var(--color-muted-on-dark);
+  }
+  .tile .sub,
+  .panel .sub {
+    color: var(--color-muted);
+  }
+  .tile.bg-ink .sub,
+  .tile.bg-violet .sub {
+    color: var(--color-muted-on-dark);
+  }
 
-/* ---------- Components ---------- */
-.h-display {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 700;
-  font-size: var(--text-h1);
-  line-height: 0.95;
-  letter-spacing: -0.01em;
-}
-.sub {
-  color: var(--color-muted);
-}
-.panel {
-  background: var(--color-white);
-  border-radius: var(--radius-sheet);
-  padding: 14px 16px;
-}
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  border: 0;
-  border-radius: var(--radius-pill);
-  padding: 16px 22px;
-  font-size: var(--text-body);
-  font-weight: 700;
-  background: var(--color-ink);
-  color: var(--color-white);
-  cursor: pointer;
-  text-decoration: none;
-}
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.btn-ghost {
-  background: transparent;
-  color: var(--color-ink);
-  box-shadow: inset 0 0 0 2px var(--color-ink);
-}
-.pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border-radius: var(--radius-pill);
-  padding: 5px 11px;
-  font-size: var(--text-caption);
-  font-weight: 700;
-  background: var(--color-white);
-  color: var(--color-ink);
-}
-.pill-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-home);
-}
-.field {
-  width: 100%;
-  border: 0;
-  border-radius: var(--radius-input);
-  background: var(--color-white);
-  color: var(--color-ink);
-  padding: 14px;
-  font-size: var(--text-body);
-}
-.field::placeholder {
-  color: var(--color-muted);
-}
-.avatar {
-  display: inline-grid;
-  place-items: center;
-  flex: none;
-  border-radius: 50%;
-  background: var(--color-white);
-  line-height: 1;
-}
-.photo {
-  border-radius: var(--radius-photo);
-  box-shadow: var(--shadow-photo);
-  overflow: hidden;
+  /* ---------- Tiles: white by default, colour with bg-* utilities (bg-lime, bg-pink, ...) ---------- */
+  .tile {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-tile);
+    padding: 16px;
+    background: var(--color-white);
+    color: var(--color-ink);
+  }
+  .tile-sm {
+    padding: 12px;
+  }
+  .tile.bg-ink,
+  .tile.bg-violet {
+    color: var(--color-white);
+  }
+  .panel {
+    border-radius: var(--radius-tile);
+    padding: 16px;
+    background: var(--color-white);
+    color: var(--color-ink);
+  }
+
+  /* ---------- Chips: translucent white on violet; bg-* utilities colour them (ink text on light colours) ---------- */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: var(--radius-pill);
+    padding: 6px 12px;
+    font-size: var(--text-small);
+    font-weight: 700;
+    background: rgb(255 255 255 / 0.16);
+    color: inherit;
+  }
+  .chip[class*="bg-"] {
+    color: var(--color-ink);
+  }
+  .chip.bg-ink,
+  .chip.bg-violet {
+    color: var(--color-white);
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: var(--radius-pill);
+    padding: 6px 12px;
+    font-size: var(--text-small);
+    font-weight: 700;
+    background: var(--color-lime);
+    color: var(--color-ink);
+  }
+  .pill-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-ink);
+  }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    border: 0;
+    border-radius: var(--radius-pill);
+    padding: 16px 22px;
+    font-size: var(--text-ui);
+    font-weight: 800;
+    background: var(--color-lime);
+    color: var(--color-ink);
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .btn-dark {
+    background: var(--color-ink);
+    color: var(--color-white);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-white);
+    box-shadow: inset 0 0 0 2px var(--color-white);
+  }
+  .tile .btn-ghost,
+  .panel .btn-ghost {
+    color: var(--color-ink);
+    box-shadow: inset 0 0 0 2px var(--color-ink);
+  }
+
+  /* ---------- Inputs ---------- */
+  .input,
+  .field {
+    width: 100%;
+    border: 0;
+    border-radius: var(--radius-input);
+    background: var(--color-white);
+    color: var(--color-ink);
+    padding: 13px 14px;
+    font-size: var(--text-body);
+    resize: none;
+  }
+  .input::placeholder,
+  .field::placeholder {
+    color: rgb(23 11 59 / 0.55);
+  }
+
+  /* ---------- Stickers ---------- */
+  /* 4-point sparkle, lime by default; recolour with bg-pink etc. Place it with absolute + top/right; mark aria-hidden. */
+  .sticker-sparkle {
+    display: block;
+    width: 54px;
+    height: 54px;
+    background: var(--color-lime);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 0C54 34 66 46 100 50C66 54 54 66 50 100C46 66 34 54 0 50C34 46 46 34 50 0Z'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 0C54 34 66 46 100 50C66 54 54 66 50 100C46 66 34 54 0 50C34 46 46 34 50 0Z'/%3E%3C/svg%3E") center / contain no-repeat;
+    pointer-events: none;
+  }
+
+  /* ---------- Photos, avatars, versus seam ---------- */
+  .avatar {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    border-radius: 50%;
+    background: var(--color-white);
+    color: var(--color-ink);
+    line-height: 1;
+  }
+  .photo {
+    border-radius: var(--radius-photo);
+    overflow: hidden;
+  }
+  .versus {
+    position: relative;
+    height: 300px;
+    border-radius: var(--radius-photo);
+    overflow: hidden;
+  }
+  .versus-home,
+  .versus-away {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 56%;
+    overflow: hidden;
+  }
+  .versus-home {
+    left: 0;
+    clip-path: polygon(0 0, 100% 0, 82% 100%, 0 100%);
+  }
+  .versus-away {
+    right: 0;
+    clip-path: polygon(18% 0, 100% 0, 100% 100%, 0 100%);
+  }
+  .vs-badge {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%) rotate(-8deg);
+    background: var(--color-lime);
+    color: var(--color-ink);
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: var(--text-tile);
+    box-shadow: 0 0 0 5px var(--color-ink);
+  }
+  .viewfinder {
+    border-radius: var(--radius-tile);
+    background: var(--viewfinder, var(--color-ink));
+    position: relative;
+    overflow: hidden;
+  }
 }
 
 /* === S4 capture-post === */
