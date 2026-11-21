@@ -10,7 +10,7 @@ const tabs = [
 export default function BottomNav({ groupId }: { groupId: string }) {
   return (
     <nav className="bottom-nav" aria-label="Group">
-      <div className="bottom-nav-inner">
+      <div className="nav-pill">
         {tabs.map((t) => (
           <NavLink
             key={t.label}
@@ -18,7 +18,6 @@ export default function BottomNav({ groupId }: { groupId: string }) {
             end={t.end}
             className={({ isActive }) => `${t.cls}${isActive ? ' active' : ''}`}
           >
-            <i aria-hidden="true" />
             {t.label}
           </NavLink>
         ))}
