@@ -256,3 +256,68 @@
   box-shadow: var(--shadow-photo);
   overflow: hidden;
 }
+
+/* === S6a scoring-table === */
+.league-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-small);
+  font-variant-numeric: tabular-nums;
+}
+.league-table th {
+  padding: 4px 6px 10px;
+  text-align: right;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  color: var(--color-muted);
+}
+.league-table td {
+  padding: 10px 6px;
+  text-align: right;
+  white-space: nowrap;
+  border-top: 1px solid var(--color-line);
+}
+.league-table th:nth-child(-n + 2),
+.league-table td:nth-child(-n + 2) {
+  text-align: left;
+}
+.league-rank {
+  width: 52px;
+  font-weight: 700;
+}
+.league-rank .font-display {
+  display: inline-block;
+  min-width: 14px;
+}
+.league-move {
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.league-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  font-weight: 700;
+}
+.league-name-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.league-pts {
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+  font-weight: 700;
+}
+.league-table tr.league-me td {
+  background: var(--color-white);
+  border-top-color: transparent;
+}
+.league-table tr.league-me td:first-child {
+  border-radius: var(--radius-input) 0 0 var(--radius-input);
+}
+.league-table tr.league-me td:last-child {
+  border-radius: 0 var(--radius-input) var(--radius-input) 0;
+}
