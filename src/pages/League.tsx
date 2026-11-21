@@ -22,7 +22,7 @@ function seasonLabel(season: Season | null, now: Date): string {
   const total = daysBetween(season.startsOn, season.endsOn) + 1
   const today = localDateKey(now)
   if (today > season.endsOn) return `Season ${season.number} · Final table`
-  if (today < season.startsOn) return `Season ${season.number} · Starts ${shortDate(season.startsOn)}`
+  if (today < season.startsOn) return `Pre-season · Season ${season.number} starts ${shortDate(season.startsOn)}`
   const day = Math.min(total, daysBetween(season.startsOn, today) + 1)
   return `Season ${season.number} · Day ${day} of ${total}`
 }
@@ -53,7 +53,10 @@ export default function League() {
       inFlight = true
       try {
         const season = await currentSeason(group.id)
-        const battles = await listBattles(group.id, season?.id ?? null)
+        // Before the latest season starts, show a pre-season table that counts every battle so far
+        // (e.g. custom battles played today when the first season starts tomorrow).
+        const preSeason = season !== null && localDateKey(new Date()) < season.startsOn
+        const battles = await listBattles(group.id, preSeason ? null : season?.id ?? null)
         if (cancelled) return
         // A just-revealed battle counts even if this phone's clock is behind the server's.
         const latestClosed = battles.reduce((t, b) => Math.max(t, b.record.closedAt?.getTime() ?? 0), 0)
