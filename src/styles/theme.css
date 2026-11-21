@@ -1258,3 +1258,75 @@
     color: var(--color-lime);
   }
 }
+
+/* === reactions === */
+.rx-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rx-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.rx-col {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+/* Solid ink pills with white text: legible on violet and on white pages alike. */
+.rx-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 2px solid var(--color-pink);
+  border-radius: var(--radius-pill);
+  background: var(--color-ink);
+  color: var(--color-white);
+  font-size: var(--text-small);
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.rx-b .rx-pill {
+  border-color: var(--color-sky);
+}
+.rx-emoji {
+  font-size: var(--text-name);
+}
+.rx-count {
+  font-variant-numeric: tabular-nums;
+  min-width: 1ch;
+  text-align: left;
+}
+.rx-pill.rx-mine {
+  border-color: var(--color-lime);
+  box-shadow: 0 0 0 2px var(--color-lime);
+}
+.rx-pill:active {
+  transform: scale(0.96);
+}
+.rx-error {
+  align-self: flex-start;
+  margin: 0;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-ink);
+  color: var(--color-white);
+  font-size: var(--text-caption);
+  font-weight: 800;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rx-pill:active {
+    transform: none;
+  }
+}

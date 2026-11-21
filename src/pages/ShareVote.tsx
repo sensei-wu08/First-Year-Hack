@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useParams } from 'react-router-dom'
+import { ReactionRow } from '../components/ReactionRow'
 import { ResultsReveal } from '../components/ResultsReveal'
 import { FitSide, VersusSeam } from '../components/VersusSeam'
 import { VoteSplit } from '../components/VoteSplit'
@@ -213,6 +214,9 @@ export default function ShareVote() {
         </h1>
       )}
       {body}
+      {(phase === 'voting' || phase === 'awaiting_results' || phase === 'results') && (
+        <ReactionRow battleId={record.id} posted={posted} names={[players[0].name, players[1].name]} />
+      )}
     </Frame>
   )
 }
