@@ -34,9 +34,12 @@ export default function CreateGroup() {
   if (created) {
     return (
       <div className="set-group">
-        <div className="screen app-col">
-          <h1 className="h-display">{created.name} is ready</h1>
-          <p className="sub">Friends scan the code or open the link to join in one tap.</p>
+        <div className="screen app-col pb-6">
+          <div className="tile bg-lime">
+            <h1 className="h-display pr-12">{created.name} is ready</h1>
+            <p className="mt-1.5 font-semibold">Friends scan the code or open the link to join in one tap.</p>
+            <span className="sticker-sparkle absolute right-3.5 top-3.5 h-11 w-11 bg-pink" aria-hidden="true" />
+          </div>
           <InviteQr url={`${window.location.origin}/j/${created.inviteCode}`} label={`Join ${created.name} on Fits`} />
           <Link to={`/g/${created.id}`} className="btn">Go to {created.name}</Link>
         </div>
@@ -46,20 +49,18 @@ export default function CreateGroup() {
 
   return (
     <div className="set-group">
-      <form className="screen app-col" onSubmit={submit}>
+      <form className="screen app-col pb-6" onSubmit={submit}>
         <h1 className="h-display">New group</h1>
-        <label className="flex flex-col gap-1.5 font-bold">
-          Group name
-          <input
-            className="field"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Flat 4B"
-            maxLength={60}
-          />
-        </label>
+        <input
+          className="input"
+          aria-label="Group name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Group name, like Flat 4B"
+          maxLength={60}
+        />
         {error && (
-          <p role="alert" className="font-bold text-down">
+          <p role="alert" className="tile tile-sm font-bold">
             {error}
           </p>
         )}

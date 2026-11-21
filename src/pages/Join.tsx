@@ -69,7 +69,7 @@ export default function Join() {
   if (loadError) {
     body = (
       <>
-        <p className="panel" role="alert">{loadError}</p>
+        <p className="tile" role="alert">{loadError}</p>
         <button className="btn" onClick={() => setTick((t) => t + 1)}>Try again</button>
       </>
     )
@@ -77,28 +77,29 @@ export default function Join() {
     body = <p className="sub">Loading your invite</p>
   } else if (invite === null) {
     body = (
-      <p className="panel" role="alert">
+      <p className="tile bg-pink font-bold" role="alert">
         This invite link isn't valid. Ask for a new one.
       </p>
     )
   } else {
     body = (
-      <form className="flex flex-col gap-4" onSubmit={submit}>
-        <div className="invite-hero">
-          <h1 className="h-display">Join {invite.name}</h1>
-          <p className="mt-2 font-bold">
+      <form className="flex flex-col gap-2.5" onSubmit={submit}>
+        <div className="tile bg-pink">
+          <h1 className="h-display pr-12">Join {invite.name}</h1>
+          <p className="mt-1.5 font-semibold">
             {invite.memberCount === 1 ? '1 person is' : `${invite.memberCount} people are`} in this league.
           </p>
+          <span className="sticker-sparkle absolute right-3.5 top-3.5 h-11 w-11" aria-hidden="true" />
         </div>
         {profile ? (
-          <p className="font-bold">
-            You'll join as {profile.emoji} {profile.name}.
+          <p className="chip self-start">
+            You'll join as {profile.emoji} {profile.name}
           </p>
         ) : (
           <ProfileFields name={name} emoji={emoji} onName={setName} onEmoji={setEmoji} error={null} />
         )}
         {error && (
-          <p role="alert" className="font-bold text-down">
+          <p role="alert" className="tile tile-sm font-bold">
             {error}
           </p>
         )}
@@ -111,7 +112,7 @@ export default function Join() {
 
   return (
     <div className="set-join">
-      <div className="screen app-col">{body}</div>
+      <div className="screen app-col pb-6">{body}</div>
     </div>
   )
 }

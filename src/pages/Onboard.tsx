@@ -16,24 +16,22 @@ export function ProfileFields(props: {
   error: string | null
 }) {
   return (
-    <div className="flex flex-col gap-3">
-      <label className="flex flex-col gap-1.5 font-bold">
-        Your name
-        <input
-          className="field"
-          value={props.name}
-          onChange={(e) => props.onName(e.target.value)}
-          placeholder="What your friends call you"
-          autoComplete="given-name"
-          maxLength={60}
-        />
-      </label>
-      <div role="group" aria-label="Pick your emoji" className="emoji-grid">
+    <div className="flex flex-col gap-2.5">
+      <input
+        className="input"
+        aria-label="Your name"
+        value={props.name}
+        onChange={(e) => props.onName(e.target.value)}
+        placeholder="Your name"
+        autoComplete="given-name"
+        maxLength={60}
+      />
+      <div role="group" aria-label="Pick your emoji" className="grid grid-cols-4 gap-2">
         {EMOJIS.map((e) => (
           <button
             key={e}
             type="button"
-            className="emoji-btn"
+            className="grid aspect-square place-items-center rounded-full bg-white/20 text-[28px] leading-none ring-ink aria-pressed:bg-lime aria-pressed:ring-[3px]"
             aria-pressed={props.emoji === e}
             aria-label={`Emoji ${e}`}
             onClick={() => props.onEmoji(e)}
@@ -43,7 +41,7 @@ export function ProfileFields(props: {
         ))}
       </div>
       {props.error && (
-        <p role="alert" className="font-bold text-down">
+        <p role="alert" className="tile tile-sm font-bold">
           {props.error}
         </p>
       )}
@@ -91,15 +89,14 @@ export default function Onboard() {
 
   return (
     <div className="set-today">
-      <form className="screen app-col" onSubmit={submit}>
-        <div>
+      <form className="screen app-col pb-6" onSubmit={submit}>
+        <div className="tile bg-pink">
           <h1 className="h-display">{APP_NAME}</h1>
-          <p className="sub mt-2">{TAGLINE}</p>
+          <p className="mt-1.5 pr-12 font-semibold">{TAGLINE}</p>
+          <span className="sticker-sparkle absolute right-3.5 top-3.5 h-11 w-11" aria-hidden="true" />
         </div>
-        <div className="panel">
-          <h2 className="mb-3 text-title font-bold">{profile ? 'Edit your profile' : 'Who are you?'}</h2>
-          <ProfileFields name={name} emoji={emoji} onName={setName} onEmoji={setEmoji} error={error} />
-        </div>
+        <h2 className="h-tile mt-1">{profile ? 'Edit your profile' : 'Who are you?'}</h2>
+        <ProfileFields name={name} emoji={emoji} onName={setName} onEmoji={setEmoji} error={error} />
         <button className="btn" type="submit" disabled={busy || loading}>
           {busy ? 'Saving' : profile ? 'Save profile' : "Let's go"}
         </button>

@@ -12,6 +12,7 @@ import { localDateKey } from '../lib/time'
 import type { BattleView, Member, Phase, Season } from '../lib/types'
 
 const POLL_MS = 10_000
+const DAY_MS = 86_400_000
 
 const hhmm = (d: Date) => d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
 const dayLabel = (d: Date) => d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
@@ -24,18 +25,22 @@ interface Row {
 function Side({ view, member, side }: { view: BattleView; member: Member | undefined; side: 'a' | 'b' }) {
   const playerId = side === 'a' ? view.record.playerA : view.record.playerB
   const post = view.posts.find((p) => p.profileId === playerId)
-  const cls = side === 'a' ? 'fixture-side fixture-home' : 'fixture-side fixture-away'
+  const home = side === 'a'
   return (
-    <div className={cls}>
-      <div className="fixture-photo photo">
-        {post ? (
-          <img src={post.mediaUrl} alt={`${member?.name ?? 'Player'}'s fit`} loading="lazy" />
-        ) : (
-          <span className="fixture-empty">{member ? <Avatar emoji={member.emoji} size={48} /> : null}</span>
-        )}
-      </div>
-      <p className="fixture-name">{member?.name ?? 'Player'}</p>
-      <p className="fixture-note">{post ? 'Posted' : 'Not posted yet'}</p>
+    <div className={`${home ? 'versus-home bg-pink' : 'versus-away bg-sky'}`}>
+      {post ? (
+        <img
+          src={post.mediaUrl}
+          alt={`${member?.name ?? 'Player'}'s fit`}
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      ) : (
+        <span className="grid h-full place-items-center">
+          {member ? <Avatar emoji={member.emoji} size={64} /> : null}
+        </span>
+      )}
+      <span className={`fixture-name absolute bottom-3 ${home ? 'left-3' : 'right-3'}`}>{member?.name ?? 'Player'}</span>
     </div>
   )
 }
@@ -44,15 +49,28 @@ function Fixture({ row, members }: { row: Row; members: Map<string, Member> }) {
   const { view, phase } = row
   const a = members.get(view.record.playerA)
   const b = members.get(view.record.playerB)
+  const posted = postedOf(view)
   return (
-    <Link to={`/b/${view.record.id}`} className="fixture" aria-label={`${a?.name ?? 'Player'} versus ${b?.name ?? 'Player'}`}>
-      <div className="fixture-head">
-        <PhaseBadge phase={phase} />
-      </div>
-      <div className="fixture-sides">
+    <Link
+      to={`/b/${view.record.id}`}
+      className="flex flex-col gap-2.5 text-white no-underline"
+      aria-label={`${a?.name ?? 'Player'} versus ${b?.name ?? 'Player'}`}
+    >
+      <div className="versus">
         <Side view={view} member={a} side="a" />
-        <span className="fixture-vs" aria-hidden="true">vs</span>
         <Side view={view} member={b} side="b" />
+        <span className="vs-badge" aria-hidden="true">vs</span>
+      </div>
+      <div className="tile tile-sm bg-ink flex flex-wrap items-center justify-between gap-2">
+        <PhaseBadge phase={phase} />
+        <span className="flex flex-wrap gap-1.5">
+          <span className={`chip ${posted.a ? 'bg-lime' : ''}`}>
+            {a?.name ?? 'Player'} {posted.a ? 'posted' : 'not posted'}
+          </span>
+          <span className={`chip ${posted.b ? 'bg-lime' : ''}`}>
+            {b?.name ?? 'Player'} {posted.b ? 'posted' : 'not posted'}
+          </span>
+        </span>
       </div>
     </Link>
   )
@@ -61,7 +79,7 @@ function Fixture({ row, members }: { row: Row; members: Map<string, Member> }) {
 function Hidden({ row }: { row: Row }) {
   const r = row.view.record
   return (
-    <div className="panel flex items-center justify-between gap-3">
+    <div className="tile tile-sm bg-tangerine flex items-center justify-between gap-3">
       <span className="font-bold">Match revealed at {hhmm(r.revealAt)}</span>
       <span className="sub">{dayLabel(r.revealAt)}</span>
     </div>
@@ -75,7 +93,7 @@ function PastRow({ row, members }: { row: Row; members: Map<string, Member> }) {
   const { votesA, votesB } = view.tally
   const score = phase === 'results' && votesA !== null && votesB !== null ? `${votesA}–${votesB}` : 'vs'
   return (
-    <Link to={`/b/${view.record.id}`} className="panel flex items-center justify-between gap-3 text-ink no-underline">
+    <Link to={`/b/${view.record.id}`} className="tile tile-sm bg-lavender flex items-center justify-between gap-3 no-underline">
       <span className="font-bold">
         {a} {score} {b}
       </span>
@@ -135,24 +153,30 @@ export default function Today() {
     .sort((x, y) => y.view.record.revealAt.getTime() - x.view.record.revealAt.getTime())
 
   const endedSeason = seasons.filter((s) => s.endsOn < today).sort((x, y) => y.number - x.number)[0]
+  const liveSeason = seasons.find((s) => s.startsOn <= today && today <= s.endsOn)
+  const seasonDay = liveSeason
+    ? Math.round((new Date(`${today}T00:00:00Z`).getTime() - new Date(`${liveSeason.startsOn}T00:00:00Z`).getTime()) / DAY_MS) + 1
+    : null
 
   return (
-    <div className="screen">
-      <header className="flex items-end justify-between gap-3">
+    <div className="screen pb-2">
+      <header className="flex items-center justify-between gap-3">
         <h1 className="h-display">Today</h1>
-        <span className="pill">{group.name}</span>
+        <span className="chip bg-lime">
+          {liveSeason && seasonDay ? `Season ${liveSeason.number} · day ${seasonDay}` : group.name}
+        </span>
       </header>
 
       {endedSeason && (
-        <Link to={`/g/${group.id}/wrapped/${endedSeason.id}`} className="wrapped-banner">
+        <Link to={`/g/${group.id}/wrapped/${endedSeason.id}`} className="tile tile-sm bg-lime flex items-center justify-between gap-3 no-underline">
           <span className="font-bold">Season {endedSeason.number} Wrapped is ready</span>
-          <span aria-hidden="true">See it</span>
+          <span className="chip bg-ink" aria-hidden="true">See it</span>
         </Link>
       )}
 
       {error && (
         <div className="flex flex-col gap-2">
-          <p className="panel" role="alert">{error}</p>
+          <p className="tile" role="alert">{error}</p>
           <button className="btn" onClick={() => setTick((t) => t + 1)}>Try again</button>
         </div>
       )}
@@ -163,7 +187,7 @@ export default function Today() {
         <>
           <section className="flex flex-col gap-2.5" aria-label="Today's battles">
             {todays.length === 0 ? (
-              <p className="panel">No battle today. Check back at {group.revealTime}.</p>
+              <p className="tile bg-lavender">No battle today. Matches come out at {group.revealTime}.</p>
             ) : (
               todays.map((r) =>
                 r.phase === 'upcoming' ? (
@@ -175,9 +199,24 @@ export default function Today() {
             )}
           </section>
 
+          <div className="grid grid-cols-3 gap-2" aria-label="Daily times">
+            <div className="tile tile-sm bg-mint">
+              <b className="block font-display text-name font-extrabold">{group.revealTime}</b>
+              <small className="text-caption font-semibold">Matches out</small>
+            </div>
+            <div className="tile tile-sm bg-pink">
+              <b className="block font-display text-name font-extrabold">{group.postDeadlineTime}</b>
+              <small className="text-caption font-semibold">Post by</small>
+            </div>
+            <div className="tile tile-sm bg-sky">
+              <b className="block font-display text-name font-extrabold">{group.resultsTime}</b>
+              <small className="text-caption font-semibold">Results</small>
+            </div>
+          </div>
+
           {upcoming.length > 0 && (
             <section className="flex flex-col gap-2.5" aria-label="Upcoming battles">
-              <h2 className="text-title font-bold">Coming up</h2>
+              <h2 className="h-tile mt-2">Coming up</h2>
               {upcoming.map((r) => (
                 <Hidden key={r.view.record.id} row={r} />
               ))}
@@ -186,7 +225,7 @@ export default function Today() {
 
           {past.length > 0 && (
             <section className="flex flex-col gap-2.5" aria-label="Past results">
-              <h2 className="text-title font-bold">Past results</h2>
+              <h2 className="h-tile mt-2">Past results</h2>
               {past.map((r) => (
                 <PastRow key={r.view.record.id} row={r} members={memberMap} />
               ))}
@@ -196,7 +235,7 @@ export default function Today() {
       )}
 
       {isAdmin && (
-        <section className="flex flex-col gap-3" aria-label="Admin">
+        <section className="flex flex-col gap-2.5" aria-label="Admin">
           <Link to={`/g/${group.id}/new-battle`} className="btn">New battle</Link>
           <InviteQr url={`${window.location.origin}/j/${group.inviteCode}`} label={`Invite friends to ${group.name}`} />
         </section>

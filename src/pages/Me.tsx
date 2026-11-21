@@ -23,16 +23,16 @@ export default function Me() {
 
   return (
     <div className="set-group">
-      <div className="screen app-col">
-        <Link to="/" className="font-bold text-ink">Back to my groups</Link>
+      <div className="screen app-col pb-6">
+        <Link to="/" className="chip self-start">Back to my groups</Link>
         <h1 className="h-display">Me</h1>
         {profile && (
-          <div className="panel flex items-center gap-3">
+          <div className="tile bg-sky flex items-center gap-3">
             <Avatar emoji={profile.emoji} size={56} />
-            <span className="text-title font-bold">{profile.name}</span>
+            <span className="h-tile">{profile.name}</span>
           </div>
         )}
-        <div className="panel flex flex-col gap-2">
+        <div className="tile bg-ink flex flex-col gap-2">
           <p className="font-bold">Your user id</p>
           <code className="break-all text-small">{uid ?? 'Loading'}</code>
           <button className="btn" type="button" onClick={copyUid} disabled={!uid}>

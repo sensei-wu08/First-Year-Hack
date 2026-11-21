@@ -37,9 +37,9 @@ export default function NewBattle() {
   }
   if (uid !== group.adminId) {
     return (
-      <div className="screen">
+      <div className="screen pb-2">
         <h1 className="h-display">New battle</h1>
-        <p className="panel">Only the group admin can create battles.</p>
+        <p className="tile bg-lavender">Only the group admin can create battles.</p>
         <Link to={`/g/${group.id}`} className="btn">Back to today</Link>
       </div>
     )
@@ -77,10 +77,10 @@ export default function NewBattle() {
     }
   }
 
-  const select = (label: string, value: string, set: (v: string) => void, other: string) => (
-    <label className="flex flex-col gap-1.5 font-bold">
-      {label}
-      <select className="field" value={value} onChange={(e) => set(e.target.value)}>
+  const select = (label: string, tone: string, value: string, set: (v: string) => void, other: string) => (
+    <label className="flex flex-col gap-1.5">
+      <span className={`chip self-start ${tone}`}>{label}</span>
+      <select className="input" value={value} onChange={(e) => set(e.target.value)}>
         <option value="">Choose a player</option>
         {active.map((m) => (
           <option key={m.id} value={m.id} disabled={m.id === other}>
@@ -91,23 +91,23 @@ export default function NewBattle() {
     </label>
   )
 
-  const time = (label: string, value: string, set: (v: string) => void) => (
-    <label className="flex flex-col gap-1.5 font-bold">
-      {label}
-      <input className="field" type="datetime-local" value={value} onChange={(e) => set(e.target.value)} />
+  const time = (label: string, tone: string, value: string, set: (v: string) => void) => (
+    <label className="flex flex-col gap-1.5">
+      <span className={`chip self-start ${tone}`}>{label}</span>
+      <input className="input" type="datetime-local" value={value} onChange={(e) => set(e.target.value)} />
     </label>
   )
 
   return (
-    <form className="screen" onSubmit={submit}>
+    <form className="screen pb-2" onSubmit={submit}>
       <h1 className="h-display">New battle</h1>
-      {select('Home player', playerA, setPlayerA, playerB)}
-      {select('Away player', playerB, setPlayerB, playerA)}
-      {time('Matches out', reveal, setReveal)}
-      {time('Post by', deadline, setDeadline)}
-      {time('Results', results, setResults)}
+      {select('Home player', 'bg-pink', playerA, setPlayerA, playerB)}
+      {select('Away player', 'bg-sky', playerB, setPlayerB, playerA)}
+      {time('Matches out', 'bg-mint', reveal, setReveal)}
+      {time('Post by', 'bg-pink', deadline, setDeadline)}
+      {time('Results', 'bg-sky', results, setResults)}
       {error && (
-        <p role="alert" className="font-bold text-down">
+        <p role="alert" className="tile tile-sm font-bold">
           {error}
         </p>
       )}
