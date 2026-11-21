@@ -194,6 +194,10 @@ export default function Today() {
           <span className="sub text-small truncate">{group.name} · {longDate(now)}</span>
         </div>
         {liveSeason && seasonDay && <span className="chip bg-lime">{`Season ${liveSeason.number} · day ${seasonDay}`}</span>}
+        {/* You can be in many groups: this is the way back to the list (the installed app has no back button). */}
+        <Link to="/" className="chip bg-ink text-white shrink-0" aria-label="Switch group: see all your groups">
+          Switch group
+        </Link>
       </header>
 
       <ol className="week-strip" aria-label="This week">
