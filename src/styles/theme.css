@@ -256,3 +256,361 @@
   box-shadow: var(--shadow-photo);
   overflow: hidden;
 }
+
+/* === S5 voting-results === */
+/* Vote / results screens use the violet canvas, so text is white outside the tiles. */
+.vr-page {
+  min-height: 100dvh;
+  background: var(--color-violet);
+  color: var(--color-white);
+}
+.vr-page .tile {
+  color: var(--color-ink);
+}
+.vr-page .btn {
+  background: var(--color-lime);
+  color: var(--color-ink);
+}
+.vr-page .input {
+  background: var(--color-white);
+  color: var(--color-ink);
+  border: 0;
+  border-radius: var(--radius-input);
+  padding: 13px 14px;
+}
+.vr-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-heading);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+.vr-heading {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-tile);
+  line-height: 1.1;
+}
+.vr-note {
+  font-size: var(--text-small);
+  font-weight: 600;
+  margin-top: 4px;
+}
+.vr-soft {
+  color: var(--color-muted-on-dark);
+}
+.vr-textarea {
+  height: 60px;
+  resize: none;
+}
+.vr-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+.vr-btn-quiet {
+  background: transparent;
+  color: var(--color-ink);
+  box-shadow: inset 0 0 0 2px var(--color-ink);
+}
+.vr-page .vr-btn-quiet {
+  background: transparent;
+  color: var(--color-ink);
+}
+.vr-chip-ink {
+  background: var(--color-ink);
+  color: var(--color-white);
+}
+.vr-chip-lime {
+  background: var(--color-lime);
+  color: var(--color-ink);
+}
+
+/* Versus seam: a 10 degree slant between two photos, a tilted badge on it. */
+.versus {
+  position: relative;
+  height: 330px;
+  border-radius: var(--radius-photo);
+  overflow: hidden;
+  background: var(--color-ink);
+  isolation: isolate;
+}
+.versus-side {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 56%;
+  overflow: hidden;
+  color: var(--color-white);
+  transition: opacity 0.25s ease, filter 0.25s ease, transform 0.25s ease;
+}
+.versus-left {
+  left: 0;
+  background: var(--color-pink);
+  clip-path: polygon(0 0, 100% 0, 82% 100%, 0 100%);
+}
+.versus-right {
+  right: 0;
+  background: var(--color-sky);
+  clip-path: polygon(18% 0, 100% 0, 100% 100%, 0 100%);
+}
+.versus-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.versus-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 6px;
+  padding: 16px 28px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.versus-emoji {
+  font-size: 56px;
+  line-height: 1;
+}
+.versus-name {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  max-width: 60%;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-name);
+  line-height: 1.1;
+  color: var(--color-white);
+  text-shadow: 0 1px 10px var(--color-shade, rgba(0, 0, 0, 0.35));
+  overflow-wrap: anywhere;
+}
+.versus-right .versus-name {
+  left: auto;
+  right: 12px;
+  text-align: right;
+}
+.versus-chip {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+}
+.versus-right .versus-chip {
+  left: auto;
+  right: 12px;
+}
+.versus-hit {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.versus-hit:focus-visible {
+  outline: 3px solid var(--color-lime);
+  outline-offset: -6px;
+}
+.versus-side.is-picked {
+  transform: scale(1.03);
+  z-index: 1;
+}
+.versus-side.is-picked::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 0 5px var(--color-lime);
+  pointer-events: none;
+}
+.versus-side.is-dim {
+  opacity: 0.5;
+  filter: saturate(0.4) brightness(0.85);
+}
+.versus-badge {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(-8deg);
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: var(--color-lime);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-tile);
+  box-shadow: 0 0 0 5px var(--color-ink);
+}
+
+/* Results */
+.vr-score {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-score);
+  line-height: 0.9;
+}
+.vr-score-home {
+  color: var(--color-pink);
+}
+.vr-score-away {
+  color: var(--color-sky);
+}
+.vr-vs-names {
+  font-size: var(--text-small);
+  font-weight: 700;
+  text-align: center;
+}
+.vr-pct {
+  margin-top: 6px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-small);
+}
+.vr-points {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 700;
+}
+.vr-points-value {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-tile);
+}
+.vr-down {
+  color: var(--color-down);
+}
+.vr-bubble {
+  border-radius: var(--radius-bubble) var(--radius-bubble) var(--radius-bubble) 6px;
+  padding: 10px 12px;
+  background: var(--color-sky);
+  color: var(--color-ink);
+  font-size: var(--text-small);
+}
+.vr-bubble:nth-child(4n + 2) {
+  background: var(--color-tangerine);
+}
+.vr-bubble:nth-child(4n + 3) {
+  background: var(--color-mint);
+}
+.vr-bubble:nth-child(4n) {
+  background: var(--color-lavender);
+}
+.vr-bubble-name {
+  font-size: var(--text-caption);
+  font-weight: 800;
+}
+.report-btn {
+  border: 0;
+  background: none;
+  padding: 2px 0;
+  font-size: var(--text-caption);
+  font-weight: 700;
+  color: var(--color-ink);
+  opacity: 0.7;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.report-btn:disabled {
+  cursor: default;
+}
+.report-btn-done {
+  text-decoration: none;
+}
+
+/* The one orchestrated motion: bars fill from the seam outwards, the winner expands, the stamp lands. */
+.reveal-bars {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 14px;
+  margin-top: 12px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--color-line);
+}
+.reveal-bar {
+  height: 100%;
+  animation: reveal-bar-fill 900ms ease-out both;
+}
+.reveal-bar-home {
+  justify-self: end;
+  background: var(--color-pink);
+  transform-origin: right center;
+}
+.reveal-bar-away {
+  justify-self: start;
+  background: var(--color-sky);
+  transform-origin: left center;
+}
+.versus-won-a .versus-left {
+  width: 64%;
+  animation: reveal-grow-a 400ms ease-out 900ms both;
+}
+.versus-won-a .versus-right {
+  width: 52%;
+  animation: reveal-shrink 400ms ease-out 900ms both;
+}
+.versus-won-b .versus-right {
+  width: 64%;
+  animation: reveal-grow-a 400ms ease-out 900ms both;
+}
+.versus-won-b .versus-left {
+  width: 52%;
+  animation: reveal-shrink 400ms ease-out 900ms both;
+}
+.reveal-stamp {
+  position: absolute;
+  z-index: 3;
+  top: 12px;
+  left: 12px;
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  background: var(--color-lime);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-tile);
+  transform: rotate(-8deg);
+  animation: reveal-stamp-in 450ms cubic-bezier(0.2, 1.5, 0.4, 1) 1300ms both;
+}
+.reveal-stamp-b {
+  left: auto;
+  right: 12px;
+}
+@keyframes reveal-bar-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes reveal-grow-a {
+  from { width: 56%; }
+  to { width: 64%; }
+}
+@keyframes reveal-shrink {
+  from { width: 56%; }
+  to { width: 52%; }
+}
+@keyframes reveal-stamp-in {
+  from { transform: rotate(-8deg) scale(1.8); opacity: 0; }
+  60% { opacity: 1; }
+  to { transform: rotate(-8deg) scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal-bar,
+  .versus-won-a .versus-side,
+  .versus-won-b .versus-side,
+  .reveal-stamp {
+    animation: none;
+  }
+  .versus-side {
+    transition: none;
+  }
+}
