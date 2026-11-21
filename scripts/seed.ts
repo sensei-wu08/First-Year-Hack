@@ -1,5 +1,5 @@
 /**
- * Seeds "The Fit Crew": 8 members (7 fake + the presenter), one finished season, a week of the
+ * Seeds "The Fit Crew": 6 members (5 fake + the presenter), one finished season, a week of the
  * current one, votes and comments. Deterministic (mulberry32(2026)) apart from row ids.
  *
  *   npm run seed -- --me <profileId> [--reset]
@@ -32,18 +32,20 @@ const COMMENT_RATE = 0.4
 const CROWD_SIZE = 12
 const SEED_EMAIL = /^(seed|crowd)\d+@fitleague\.test$/
 
-/** Fixed fake members (edit names/emoji to match whoever's photos are in seed/photos). `style` is the hidden weight. */
+/**
+ * Fixed fake members. `photos` is their folder under seed/photos/ (each person's posts use only
+ * their own photos). `style` is the hidden vote weight. The presenter (--me) is the 6th member.
+ */
 const MEMBERS = [
-  { name: 'Marcus', emoji: '🧢', style: 1.0 },
-  { name: 'Priya', emoji: '🕶️', style: 1.6 },
-  { name: 'Jae', emoji: '🧥', style: 1.1 },
-  { name: 'Amara', emoji: '👟', style: 1.4 },
-  { name: 'Tom', emoji: '🎩', style: 0.6 }, // the flaky one: guaranteed >= 2 forfeits in season 1
-  { name: 'Sofia', emoji: '🌸', style: 1.2 },
-  { name: 'Dev', emoji: '🧣', style: 0.7 },
+  { name: 'Jae Den', emoji: '🎒', photos: 'jae-den', style: 1.3 },
+  { name: 'Marcus', emoji: '🧢', photos: 'marcus', style: 1.1 },
+  { name: 'Dylan', emoji: '🕶️', photos: 'dylan', style: 1.5 },
+  { name: 'Ryan', emoji: '👟', photos: 'ryan', style: 0.7 }, // the flaky one: guaranteed >= 2 forfeits in season 1
+  { name: 'Lukas', emoji: '🧥', photos: 'lukas', style: 1.0 },
 ]
-const FLAKY_INDEX = 4
+const FLAKY_INDEX = 3
 const ME_STYLE = 1.15
+const ME_PHOTOS = 'michael'
 
 /** Outfit-only lines (tone rule: roast the outfit, never the person). */
 const COMMENTS = [
@@ -108,12 +110,17 @@ function loadEnv(): { url: string; key: string } {
   return { url, key }
 }
 
+/** Photo paths relative to seed/photos/: top-level files and one level of per-person folders ("ryan/ryan-1.jpg"). */
 function listPhotos(): string[] {
   let files: string[] = []
   try {
-    files = readdirSync(photosDir)
-      .filter((f) => /\.jpe?g$/i.test(f))
-      .sort()
+    for (const e of readdirSync(photosDir, { withFileTypes: true })) {
+      if (e.isFile() && /\.jpe?g$/i.test(e.name)) files.push(e.name)
+      else if (e.isDirectory()) {
+        for (const f of readdirSync(`${photosDir}${e.name}`)) if (/\.jpe?g$/i.test(f)) files.push(`${e.name}/${f}`)
+      }
+    }
+    files.sort()
   } catch {
     // directory missing: handled below
   }
@@ -222,6 +229,18 @@ async function main() {
   const style = new Map<string, number>(MEMBERS.map((m, i) => [ids[i], m.style]))
   style.set(me, ME_STYLE)
   const flaky = ids[FLAKY_INDEX]
+  // Each person posts their own photos (folder seed/photos/<slug>/); fall back to the shared pool.
+  const folderOf = new Map<string, string>(MEMBERS.map((m, i) => [ids[i], m.photos]))
+  folderOf.set(me, ME_PHOTOS)
+  const photoCursor = new Map<string, number>()
+  let sharedCursor = 0
+  const photoFor = (profileId: string): string => {
+    const own = files.filter((f) => f.startsWith(`${folderOf.get(profileId)}/`))
+    if (own.length === 0) return files[sharedCursor++ % files.length]
+    const n = photoCursor.get(profileId) ?? 0
+    photoCursor.set(profileId, n + 1)
+    return own[n % own.length]
+  }
 
   // --- group, memberships, seasons ----------------------------------------
   const joined = new Date(2026, 8, 30, 12, 0, 0).toISOString()
@@ -306,7 +325,6 @@ async function main() {
   // --- posts and votes ----------------------------------------------------
   const postRows: Record<string, unknown>[] = []
   const voteRows: Record<string, unknown>[] = []
-  let photoCursor = 0
   let comments = 0
   const stats = { s1: { battles: 0, votes: 0, forfeits: 0 }, s2: { battles: 0, votes: 0, forfeits: 0 } }
 
@@ -329,7 +347,7 @@ async function main() {
       postRows.push({
         battle_id: p.id,
         profile_id: profileId,
-        media_path: `seed/${files[photoCursor++ % files.length]}`,
+        media_path: `seed/${photoFor(profileId)}`,
         media_type: 'photo',
         created_at: new Date(t).toISOString(),
       })
