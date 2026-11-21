@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fits screens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#170B3B; --white:#FFFFFF;
+  --violet:#5B34F2; --lavender:#B9A4FF;
+  --lime:#D6FF4F; --pink:#FF4FA0; --sky:#47C6FF; --tangerine:#FF8A2A; --mint:#5BE3B0;
+  --home:var(--pink); --away:var(--sky);
+  --soft:rgba(255,255,255,.72); --line:rgba(255,255,255,.18);
+  --up:var(--lime); --down:#FF5C5C;
+  --display:"Unbounded", system-ui, sans-serif;
+  --body:"Plus Jakarta Sans", system-ui, sans-serif;
+  --r-tile:28px; --r-photo:24px; --r-input:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--lavender);font-family:var(--body);color:var(--ink);font-size:15px;line-height:1.45;padding:40px 24px 80px}
+.intro{max-width:760px;margin:0 auto 40px}
+.intro h1{font-family:var(--display);font-size:64px;line-height:1;font-weight:800;color:var(--violet)}
+.intro p{margin-top:10px;font-size:17px;max-width:62ch}
+.swatches{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.swatches span{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600}
+.swatches i{width:24px;height:24px;border-radius:50%;display:block;box-shadow:0 0 0 2px var(--white)}
+.board{display:flex;flex-wrap:wrap;gap:40px;justify-content:center}
+figure{display:flex;flex-direction:column;gap:12px;align-items:center}
+figcaption{font-weight:800;font-size:15px}
+figcaption span{display:block;font-weight:400;font-size:13px;max-width:360px;text-align:center}
+
+/* phone: violet canvas, colourful bento tiles */
+.phone{width:390px;height:780px;background:var(--violet);border-radius:46px;overflow:hidden;position:relative;color:var(--white);
+  box-shadow:0 0 0 10px var(--ink),0 30px 60px -20px rgba(23,11,59,.5);display:flex;flex-direction:column}
+.status{height:44px;flex:none;display:flex;justify-content:space-between;align-items:center;padding:0 28px;font-weight:700;font-size:14px}
+.screen{flex:1;overflow:hidden;padding:6px 14px 0;display:flex;flex-direction:column;gap:10px}
+.nav{flex:none;margin:8px 14px 14px;height:64px;border-radius:999px;background:var(--ink);display:grid;grid-template-columns:repeat(4,1fr);font-size:12px;font-weight:700;color:rgba(255,255,255,.55);padding:6px}
+.nav div{display:flex;align-items:center;justify-content:center;border-radius:999px}
+.nav .on{background:var(--lime);color:var(--ink)}
+
+.tile{border-radius:var(--r-tile);padding:16px;position:relative;overflow:hidden}
+.t-ink{background:var(--ink)} .t-lime{background:var(--lime);color:var(--ink)} .t-pink{background:var(--pink);color:var(--ink)}
+.t-sky{background:var(--sky);color:var(--ink)} .t-tan{background:var(--tangerine);color:var(--ink)} .t-mint{background:var(--mint);color:var(--ink)}
+.t-white{background:var(--white);color:var(--ink)} .t-lav{background:var(--lavender);color:var(--ink)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* type */
+.h2{font-family:var(--display);font-weight:800;font-size:28px;line-height:1.05;letter-spacing:-.01em}
+.h3{font-family:var(--display);font-weight:800;font-size:20px;line-height:1.1}
+.big{font-family:var(--display);font-weight:800;line-height:.9}
+.soft{color:var(--soft)}
+.dim{opacity:.7}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.btn{border:0;border-radius:999px;padding:16px 22px;font:800 16px var(--body);background:var(--lime);color:var(--ink);width:100%;cursor:pointer}
+.btn.dark{background:var(--ink);color:var(--white)}
+.btn.ghost{background:transparent;color:var(--white);box-shadow:inset 0 0 0 2px var(--white)}
+.btn:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--lime);outline-offset:2px}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:700;background:rgba(255,255,255,.16)}
+.chip.lime{background:var(--lime);color:var(--ink)} .chip.ink{background:var(--ink);color:var(--white)}
+.chip.outline{background:transparent;box-shadow:inset 0 0 0 1.5px currentColor}
+
+/* stickers */
+.sticker{position:absolute;display:grid;place-items:center;font-family:var(--display);font-weight:800}
+.spark{width:54px;height:54px}
+.spark svg{width:100%;height:100%}
+.pct{background:var(--lime);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:15px;transform:rotate(-8deg)}
+
+/* outfit placeholders */
+.fit{position:relative;overflow:hidden;border-radius:var(--r-photo)}
+.fit svg.fig{position:absolute;inset:auto 0 0 0;margin:auto;width:70%;height:82%}
+.fit.home{background:radial-gradient(110% 80% at 30% 15%,#FFB0D3 0,#FF4FA0 55%,#D92C7C 100%)}
+.fit.away{background:radial-gradient(110% 80% at 70% 15%,#B5EBFF 0,#47C6FF 55%,#1D97D6 100%)}
+.fit.lime{background:radial-gradient(110% 80% at 50% 15%,#F0FFB8 0,#D6FF4F 60%,#A8D61C 100%)}
+.fit.tan{background:radial-gradient(110% 80% at 50% 15%,#FFD0A8 0,#FF8A2A 60%,#D9650A 100%)}
+.name{position:absolute;left:12px;bottom:12px;font-family:var(--display);font-weight:800;font-size:18px;color:var(--white);text-shadow:0 1px 10px rgba(0,0,0,.25)}
+.fit.away .name{left:auto;right:12px}
+
+/* versus seam */
+.versus{position:relative;height:300px;border-radius:var(--r-photo);overflow:hidden}
+.versus .fit{position:absolute;top:0;bottom:0;border-radius:0}
+.versus .home{left:0;width:56%;clip-path:polygon(0 0,100% 0,82% 100%,0 100%)}
+.versus .away{right:0;width:56%;clip-path:polygon(18% 0,100% 0,100% 100%,0 100%)}
+.badge{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-8deg);width:62px;height:62px;border-radius:50%;background:var(--lime);color:var(--ink);
+  display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:20px;box-shadow:0 0 0 5px var(--ink)}
+
+/* today */
+.times{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.times .tile{padding:12px 12px 10px}
+.times b{display:block;font-family:var(--display);font-size:18px;font-weight:800}
+.times small{font-size:12px;font-weight:600}
+
+/* capture */
+.viewfinder{flex:1;border-radius:var(--r-tile);background:#2A1A63;position:relative;overflow:hidden}
+.viewfinder svg.fig{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:62%;height:86%;opacity:.5;filter:invert(1)}
+.vf-top{position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;font-size:13px;font-weight:700}
+.seg{display:flex;background:rgba(255,255,255,.16);border-radius:999px;padding:3px}
+.seg span{padding:5px 12px;border-radius:999px}
+.seg .on{background:var(--lime);color:var(--ink)}
+.shutter-row{display:flex;align-items:center;justify-content:space-between;padding:16px 30px 22px;font-weight:700}
+.shutter{width:76px;height:76px;border-radius:50%;background:var(--pink);box-shadow:0 0 0 5px var(--violet),0 0 0 9px var(--white)}
+
+/* vote */
+.vote .away{filter:saturate(.4) brightness(.85)}
+.picked{position:absolute;top:12px;left:12px}
+textarea,input{width:100%;border:0;border-radius:var(--r-input);background:var(--white);padding:13px 14px;font:15px var(--body);color:var(--ink);resize:none}
+textarea{height:60px}
+textarea::placeholder,input::placeholder{color:rgba(23,11,59,.55)}
+
+/* results */
+.score{display:flex;justify-content:space-between;align-items:center}
+.score .big{font-size:84px}
+.bars{display:flex;height:14px;border-radius:999px;overflow:hidden;background:rgba(23,11,59,.15);margin-top:12px}
+.bars .h{background:var(--pink);width:70%} .bars .a{background:var(--sky);width:30%}
+.stamp{right:12px;top:12px;background:var(--lime);color:var(--ink);border-radius:999px;padding:6px 14px;font-size:24px;transform:rotate(-8deg)}
+.bubble{border-radius:20px 20px 20px 6px;padding:10px 12px;font-size:14px}
+.bubble b{display:block;font-size:12px}
+
+/* table */
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-weight:600;font-size:12px;text-align:right;padding:4px 4px 8px;color:var(--soft)}
+th:nth-child(-n+2){text-align:left}
+td{padding:9px 4px;border-top:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+td.n{text-align:left;font-weight:700}
+td.pts{font-family:var(--display);font-size:17px;font-weight:800}
+td.rk{text-align:left;width:46px;font-weight:800}
+.up{color:var(--up);font-size:11px} .dn{color:var(--down);font-size:11px} .eq{color:var(--soft);font-size:11px}
+tr.me td{background:var(--lime);color:var(--ink);border-top-color:transparent}
+tr.me td .up{color:var(--ink)}
+tr.me td:first-child{border-radius:12px 0 0 12px} tr.me td:last-child{border-radius:0 12px 12px 0}
+.podium{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.podium .tile{padding:12px;text-align:left}
+.podium b{display:block;font-family:var(--display);font-size:22px;font-weight:800}
+
+/* wrapped */
+.wrapped{background:var(--pink)}
+.progress{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.progress i{height:4px;border-radius:2px;background:rgba(23,11,59,.25)}
+.progress i.on{background:var(--ink)}
+.wr-big{font-size:132px;color:var(--ink);margin-top:10px}
+.wr-line{font-size:21px;font-weight:800;max-width:17ch;line-height:1.2;color:var(--ink)}
+
+/* settings */
+.item{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-top:1px solid rgba(23,11,59,.12)}
+.item:first-of-type{border-top:0}
+.item b{font-weight:600}
+.toggle{width:46px;height:28px;border-radius:999px;background:rgba(23,11,59,.18);position:relative;flex:none}
+.toggle::after{content:"";position:absolute;width:22px;height:22px;border-radius:50%;background:var(--white);top:3px;left:3px}
+.toggle.on{background:var(--violet)} .toggle.on::after{left:21px}
+
+/* join */
+.emoji-row{display:flex;gap:8px;justify-content:center;font-size:24px}
+.emoji-row span{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center}
+.emoji-row .on{background:var(--lime);box-shadow:0 0 0 3px var(--ink)}
+.code{font-family:var(--display);font-size:34px;font-weight:800;text-align:center}
+
+/* chat */
+.chat{flex:1;display:flex;flex-direction:column;gap:8px;justify-content:flex-end}
+.msg{max-width:80%;padding:10px 12px;border-radius:20px 20px 20px 6px;font-size:15px}
+.msg small{display:block;font-weight:800;font-size:12px;opacity:.75}
+.msg.mine{align-self:flex-end;border-radius:20px 20px 6px 20px}
+.sys{align-self:center;font-size:12px;font-weight:700;background:rgba(255,255,255,.16);border-radius:999px;padding:4px 10px}
+.composer{display:flex;gap:8px;align-items:center}
+.composer input{flex:1;border-radius:999px}
+.send{width:50px;height:50px;border-radius:50%;background:var(--lime);flex:none;display:grid;place-items:center;color:var(--ink);font-weight:800}
+
+@media (prefers-reduced-motion:no-preference){
+  .reveal .bars .h{animation:fillL 900ms ease-out both}
+  .reveal .bars .a{animation:fillR 900ms ease-out both}
+  .reveal .stamp{animation:stamp 380ms 900ms cubic-bezier(.2,1.6,.4,1) both}
+  @keyframes fillL{from{width:50%}to{width:70%}}
+  @keyframes fillR{from{width:50%}to{width:30%}}
+  @keyframes stamp{from{transform:rotate(-8deg) scale(1.8);opacity:0}to{transform:rotate(-8deg) scale(1);opacity:1}}
+}
+@media (max-width:440px){
+  body{padding:24px 16px 60px}
+  .phone{width:100%;max-width:390px}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="figure" viewBox="0 0 100 160"><circle cx="50" cy="22" r="14" fill="rgba(23,11,59,.5)"/><path d="M26 160 L30 62 Q50 46 70 62 L74 160 Z" fill="rgba(23,11,59,.5)"/><path d="M30 62 L14 112 M70 62 L86 112" stroke="rgba(23,11,59,.5)" stroke-width="10" stroke-linecap="round"/></symbol>
+  <symbol id="spark" viewBox="0 0 100 100"><path d="M50 0 C54 34 66 46 100 50 C66 54 54 66 50 100 C46 66 34 54 0 50 C34 46 46 34 50 0Z"/></symbol>
+</svg>
+
+<header class="intro">
+  <h1>Fits</h1>
+  <p>Sticker-book bento. A violet canvas holds chunky rounded tiles in lime, pink, sky, tangerine and mint, so every screen mixes colours. Pill chips, a lime pill nav, and a few stickers (sparkles, vote-share badges) give it a scrapbook, fit-check feel. Battles keep the slanted versus seam, now pink against sky blue.</p>
+  <div class="swatches">
+    <span><i style="background:#5B34F2"></i>Violet</span><span><i style="background:#D6FF4F"></i>Lime</span>
+    <span><i style="background:#FF4FA0"></i>Pink</span><span><i style="background:#47C6FF"></i>Sky</span>
+    <span><i style="background:#FF8A2A"></i>Tangerine</span><span><i style="background:#5BE3B0"></i>Mint</span>
+    <span><i style="background:#B9A4FF"></i>Lavender</span><span><i style="background:#170B3B"></i>Ink</span>
+  </div>
+</header>
+
+<main class="board">
+
+<!-- TODAY -->
+<figure>
+<div class="phone">
+  <div class="status"><span>9:41</span><span>Flat 4B</span></div>
+  <div class="screen">
+    <div class="row"><div class="h2">Today</div><span class="chip lime">Season 2 · day 8</span></div>
+    <div class="versus">
+      <div class="fit home"><svg class="fig"><use href="#figure"/></svg><span class="name">Marcus</span></div>
+      <div class="fit away"><svg class="fig"><use href="#figure"/></svg><span class="name">Jae den</span></div>
+      <div class="badge">vs</div>
+      <div class="sticker spark" style="right:14px;top:12px;fill:var(--lime)"><svg><use href="#spark"/></svg></div>
+    </div>
+    <div class="times">
+      <div class="tile t-mint"><b>09:00</b><small>Matches out</small></div>
+      <div class="tile t-pink"><b>12:00</b><small>Post by</small></div>
+      <div class="tile t-sky"><b>18:00</b><small>Results</small></div>
+    </div>
+    <div class="tile t-ink row" style="padding:12px 14px"><span>Jae den has <b>2h 19m</b> to post</span><span class="chip lime">Marcus posted</span></div>
+    <button class="btn">Vote now</button>
+  </div>
+  <div class="nav"><div class="on">Today</div><div>League</div><div>Chat</div><div>Group</div></div>
+</div>
+<figcaption>Today<span>The fixture tile, three coloured time tiles and one big lime action.</span></figcaption>
+</figure>
+
+<!-- CAPTURE -->
+<figure>
+<div class="phone" style="background:var(--ink)">
+  <div class="status"><span>9:41</span><span></span></div>
+  <div class="screen">
+    <div class="row"><div class="h2">Post your fit</div><span class="chip outline">Cancel</span></div>
+    <div class="viewfinder">
+      <svg class="fig"><use href="#figure"/></svg>
+      <div class="vf-top"><div class="seg"><span class="on">Photo</span><span>Video</span></div><span class="chip lime">Live only</span></div>
+      <div class="sticker spark" style="left:16px;bottom:16px;fill:var(--pink);width:40px;height:40px"><svg><use href="#spark"/></svg></div>
+    </div>
+  </div>
+  <div class="shutter-row"><span>Flip</span><div class="shutter" role="button" aria-label="Take photo"></div><span>Flash</span></div>
+</div>
+<figcaption>Capture<span>The only ink screen, so the outfit is the brightest thing. Camera only, no gallery.</span></figcaption>
+</figure>
+
+<!-- VOTE -->
+<figure>
+<div class="phone vote">
+  <div class="status"><span>9:41</span><span>Flat 4B</span></div>
+  <div class="screen">
+    <div class="tile t-lime" style="padding:14px 16px"><div class="h3">Who wore it better?</div><p style="font-size:13px;font-weight:600">Tap a fit. Voting closes at 17:59.</p></div>
+    <div class="versus" style="height:330px">
+      <div class="fit home"><svg class="fig"><use href="#figure"/></svg><span class="name">Marcus</span><span class="chip ink picked">Your pick</span></div>
+      <div class="fit away"><svg class="fig"><use href="#figure"/></svg><span class="name">Jae den</span></div>
+      <div class="badge">vs</div>
+    </div>
+    <textarea aria-label="Comment" placeholder="Add a comment (about the fit, not the person)"></textarea>
+    <button class="btn">Vote for Marcus</button>
+  </div>
+</div>
+<figcaption>Vote<span>Lime prompt tile, the seam at full size, the unpicked side fades. Also the share-link page.</span></figcaption>
+</figure>
+
+<!-- RESULTS -->
+<figure>
+<div class="phone reveal">
+  <div class="status"><span>18:00</span><span>Flat 4B</span></div>
+  <div class="screen">
+    <div class="row"><div class="h2">Full time</div><span class="chip lime">10 votes</span></div>
+    <div class="tile t-white">
+      <div class="score"><span class="big" style="color:var(--pink)">7</span><span style="font-weight:700;font-size:13px;text-align:center">Marcus<br>vs Jae den</span><span class="big" style="color:var(--sky)">3</span></div>
+      <div class="bars"><div class="h"></div><div class="a"></div></div>
+    </div>
+    <div class="fit home" style="height:190px"><svg class="fig"><use href="#figure"/></svg><span class="name">Marcus wins</span><span class="sticker stamp">+3</span></div>
+    <div class="grid2">
+      <div class="bubble t-sky"><b>Priya</b>That jacket did all the work</div>
+      <div class="bubble t-tan"><b>Tom</b>Jae den came close with the trainers</div>
+    </div>
+  </div>
+  <div class="nav"><div class="on">Today</div><div>League</div><div>Chat</div><div>Group</div></div>
+</div>
+<figcaption>Results reveal<span>Score tile, then the winner with a lime +3 sticker. Comments sit in coloured bubbles.</span></figcaption>
+</figure>
+
+<!-- LEAGUE -->
+<figure>
+<div class="phone">
+  <div class="status"><span>9:41</span><span>Flat 4B</span></div>
+  <div class="screen">
+    <div class="row"><div class="h2">League</div><span class="chip">Season 2</span></div>
+    <div class="podium">
+      <div class="tile t-lime"><small>1st</small><b>Priya</b><small>11 pts</small></div>
+      <div class="tile t-pink"><small>2nd</small><b>Marcus</b><small>7 pts</small></div>
+      <div class="tile t-sky"><small>3rd</small><b>Jae den</b><small>6 pts</small></div>
+    </div>
+    <div class="tile t-ink" style="padding:10px 12px">
+    <table>
+      <thead><tr><th>#</th><th>Name</th><th>P</th><th>W-D-L</th><th>Win %</th><th>Pts</th></tr></thead>
+      <tbody>
+        <tr><td class="rk">1 <span class="eq">–</span></td><td class="n">Priya</td><td>3</td><td>3-0-0</td><td>100</td><td class="pts">11</td></tr>
+        <tr class="me"><td class="rk">2 <span class="up">▲2</span></td><td class="n">Marcus</td><td>3</td><td>2-1-0</td><td>67</td><td class="pts">7</td></tr>
+        <tr><td class="rk">3 <span class="dn">▼1</span></td><td class="n">Jae den</td><td>2</td><td>2-0-0</td><td>100</td><td class="pts">6</td></tr>
+        <tr><td class="rk">4 <span class="dn">▼1</span></td><td class="n">Michael</td><td>2</td><td>1-1-0</td><td>50</td><td class="pts">4</td></tr>
+        <tr><td class="rk">5 <span class="eq">–</span></td><td class="n">Tom</td><td>2</td><td>1-0-1</td><td>50</td><td class="pts">3</td></tr>
+        <tr><td class="rk">6 <span class="up">▲1</span></td><td class="n">Aisha</td><td>2</td><td>0-1-1</td><td>0</td><td class="pts">1</td></tr>
+        <tr><td class="rk">7 <span class="dn">▼1</span></td><td class="n">Leo</td><td>2</td><td>0-0-2</td><td>0</td><td class="pts">0</td></tr>
+        <tr><td class="rk">8 <span class="eq">–</span></td><td class="n">Sam</td><td>2</td><td>0-0-1</td><td>0</td><td class="pts" style="color:var(--down)">−1</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+  <div class="nav"><div>Today</div><div class="on">League</div><div>Chat</div><div>Group</div></div>
+</div>
+<figcaption>League<span>Top three as coloured podium tiles, then the full table in an ink tile. Your row is lime.</span></figcaption>
+</figure>
+
+<!-- WRAPPED -->
+<figure>
+<div class="phone wrapped">
+  <div class="status" style="color:var(--ink)"><span>9:41</span><span>✕</span></div>
+  <div class="screen">
+    <div class="progress"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+    <span class="chip ink" style="align-self:flex-start">Flat 4B · Season 1 Wrapped</span>
+    <div class="big wr-big">5–2</div>
+    <p class="wr-line">Marcus, you won five of your seven battles and finished second.</p>
+    <div class="fit away" style="flex:1;margin-bottom:24px"><svg class="fig"><use href="#figure"/></svg><span class="name">Your best fit</span>
+      <span class="sticker pct" style="left:14px;top:14px">91%</span>
+      <div class="sticker spark" style="right:14px;top:14px;fill:var(--lime)"><svg><use href="#spark"/></svg></div>
+    </div>
+  </div>
+</div>
+<figcaption>Wrapped card<span>Each card is a different full-bleed colour (pink, lime, sky, tangerine) with stickers.</span></figcaption>
+</figure>
+
+<!-- SETTINGS -->
+<figure>
+<div class="phone">
+  <div class="status"><span>9:41</span><span>Flat 4B</span></div>
+  <div class="screen">
+    <div class="h2">Group settings</div>
+    <div class="tile t-white" style="padding:8px 16px">
+      <div class="item"><b>Matches out</b><span class="chip t-mint">09:00</span></div>
+      <div class="item"><b>Post by</b><span class="chip t-pink">12:00</span></div>
+      <div class="item"><b>Results</b><span class="chip t-sky">18:00</span></div>
+      <div class="item"><b>Battles per day</b><span class="chip t-lav">1 · auto</span></div>
+    </div>
+    <div class="tile t-tan" style="padding:8px 16px">
+      <div class="item"><b>Voting via share link</b><div class="toggle"></div></div>
+      <div class="item"><b>Comments</b><div class="toggle on"></div></div>
+    </div>
+    <button class="btn">Save settings</button>
+    <button class="btn ghost">Reveal results now</button>
+  </div>
+  <div class="nav"><div>Today</div><div>League</div><div>Chat</div><div class="on">Group</div></div>
+</div>
+<figcaption>Group settings<span>Times as coloured chips matching the Today tiles. Admin only; scrolls in the real app.</span></figcaption>
+</figure>
+
+<!-- JOIN -->
+<figure>
+<div class="phone">
+  <div class="status"><span>9:41</span><span></span></div>
+  <div class="screen">
+    <div class="tile t-pink"><div class="h2">Join Flat 4B</div><p style="font-weight:600;margin-top:6px">8 people are in this league. You'll play from Season 3.</p>
+      <div class="sticker spark" style="right:14px;top:14px;fill:var(--lime);width:44px;height:44px"><svg><use href="#spark"/></svg></div></div>
+    <input aria-label="Your name" value="Aisha">
+    <div class="emoji-row"><span>🦊</span><span class="on">🐸</span><span>🦄</span><span>🐙</span><span>🌵</span></div>
+    <button class="btn">Join league</button>
+    <div class="tile t-ink" style="text-align:center"><p class="soft" style="font-size:13px">Invite friends with this code</p><div class="code" style="color:var(--lime)">FIT-4B7Q</div></div>
+  </div>
+</div>
+<figcaption>Join<span>Name, emoji, join. Invite links and QR codes land here.</span></figcaption>
+</figure>
+
+<!-- CHAT -->
+<figure>
+<div class="phone">
+  <div class="status"><span>9:41</span><span>Flat 4B</span></div>
+  <div class="screen">
+    <div class="h2">Chat</div>
+    <div class="chat">
+      <p class="sys">Today: Marcus vs Jae den</p>
+      <div class="msg t-sky"><small>Priya</small>Marcus is going full winter coat again</div>
+      <div class="msg t-tan"><small>Jae den</small>posting in 5, prepare yourselves</div>
+      <div class="msg mine t-lime">clock is ticking ⏱️</div>
+      <p class="sys">Jae den posted their fit</p>
+    </div>
+    <div class="composer"><input aria-label="Message" placeholder="Message Flat 4B"><div class="send" aria-label="Send">↑</div></div>
+  </div>
+  <div class="nav"><div>Today</div><div>League</div><div class="on">Chat</div><div>Group</div></div>
+</div>
+<figcaption>Chat<span>Each person keeps their own bubble colour; yours is lime.</span></figcaption>
+</figure>
+
+</main>
+</body>
+</html>
