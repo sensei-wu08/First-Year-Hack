@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, Navigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { APP_NAME } from '../brand'
 import Avatar from '../components/Avatar'
 import { useProfile } from '../data/auth'
@@ -8,7 +8,16 @@ import type { Group } from '../lib/types'
 
 const TILE_COLOURS = ['bg-pink', 'bg-sky', 'bg-mint', 'bg-tangerine', 'bg-lavender']
 
+/** Accepts a bare code or a pasted invite link; returns the last path segment after /j/. */
+function extractCode(raw: string): string {
+  const t = raw.trim()
+  const m = t.match(/\/j\/([^/?#\s]+)/)
+  return (m ? m[1] : t.replace(/[/?#].*$/, '')).trim()
+}
+
 export default function Home() {
+  const navigate = useNavigate()
+  const [code, setCode] = useState('')
   const { profile, loading } = useProfile()
   const [groups, setGroups] = useState<Group[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -77,6 +86,27 @@ export default function Home() {
           </ul>
         )}
         <Link to="/new" className="btn">Create group</Link>
+        <form
+          className="tile flex flex-col gap-2.5"
+          onSubmit={(e) => {
+            e.preventDefault()
+            const c = extractCode(code)
+            if (c) navigate(`/j/${encodeURIComponent(c)}`)
+          }}
+        >
+          <label htmlFor="invite-code" className="h-tile">Have an invite code?</label>
+          <input
+            id="invite-code"
+            className="input"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="Paste a code or invite link"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+          />
+          <button className="btn" type="submit" disabled={!extractCode(code)}>Join group</button>
+        </form>
       </div>
     </div>
   )
