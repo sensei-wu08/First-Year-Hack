@@ -403,6 +403,8 @@
     border-radius: 0 var(--radius-input) var(--radius-input) 0;
   }
 
+}
+
 /* === S4 capture-post === */
 .cam-screen {
   position: fixed;
