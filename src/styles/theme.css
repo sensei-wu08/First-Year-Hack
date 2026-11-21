@@ -427,3 +427,15 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* === S3 join-groups === */
+/* Name on a fixture photo (as in mockup 1 TODAY). */
+.fixture-name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-name);
+  color: var(--color-white);
+  text-shadow: 0 1px 10px rgb(0 0 0 / 0.25);
+  max-width: 55%;
+  overflow-wrap: anywhere;
+}
