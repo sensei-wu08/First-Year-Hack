@@ -62,6 +62,30 @@ function ctaLabel(row: Row, viewerId: string | null): string {
   return 'Open battle'
 }
 
+function isMine(row: Row, viewerId: string | null): boolean {
+  return viewerId !== null && (row.view.record.playerA === viewerId || row.view.record.playerB === viewerId)
+}
+
+/** One line per battle, for days with several battles: names, phase and the next action. */
+function CompactFixture({ row, members, viewerId }: { row: Row; members: Map<string, Member>; viewerId: string | null }) {
+  const { view, phase } = row
+  const a = members.get(view.record.playerA)?.name ?? 'Player'
+  const b = members.get(view.record.playerB)?.name ?? 'Player'
+  return (
+    <Link
+      to={`/b/${view.record.id}`}
+      className="tile tile-sm flex items-center justify-between gap-3 no-underline"
+      aria-label={`${a} versus ${b}, ${phaseLabels[phase].toLowerCase()}`}
+    >
+      <span className="flex min-w-0 flex-col gap-1">
+        <span className="truncate font-bold">{a} vs {b}</span>
+        <PhaseBadge phase={phase} />
+      </span>
+      <span className="chip bg-ink text-white shrink-0" aria-hidden="true">{ctaLabel(row, viewerId)}</span>
+    </Link>
+  )
+}
+
 function Fixture({ row, members, viewerId }: { row: Row; members: Map<string, Member>; viewerId: string | null }) {
   const { view, phase } = row
   const a = members.get(view.record.playerA)
@@ -70,7 +94,7 @@ function Fixture({ row, members, viewerId }: { row: Row; members: Map<string, Me
   return (
     <div className="tile bg-lavender flex flex-col gap-2.5">
       <span className="sticker-sparkle absolute right-3 top-3 h-12 w-12" aria-hidden="true" />
-      <h2 className="h-tile">Today's battle</h2>
+      <h2 className="h-tile">{isMine(row, viewerId) ? 'Your battle' : "Today's battle"}</h2>
       <Link
         to={`/b/${view.record.id}`}
         className="versus block"
@@ -190,10 +214,16 @@ export default function Today() {
       <header className="hello-row">
         <span className="hello-badge" aria-hidden="true">{(greetName || '?').charAt(0).toUpperCase()}</span>
         <div className="flex min-w-0 flex-1 flex-col">
-          <h1 className="hello-name">{greetName ? `Hello, ${greetName}` : 'Hello'}</h1>
-          <span className="sub text-small truncate">{group.name} · {longDate(now)}</span>
+          <h1 className="hello-name truncate">{greetName ? `Hello, ${greetName}` : 'Hello'}</h1>
+          <span className="sub text-small truncate">
+            {group.name}
+            {liveSeason && seasonDay ? ` · Season ${liveSeason.number} · day ${seasonDay}` : ''} · {longDate(now)}
+          </span>
         </div>
-        {liveSeason && seasonDay && <span className="chip bg-lime">{`Season ${liveSeason.number} · day ${seasonDay}`}</span>}
+        {/* You can be in many groups: this is the way back to the list (the installed app has no back button). */}
+        <Link to="/" className="chip bg-ink text-white shrink-0 whitespace-nowrap" aria-label="Switch group: see all your groups">
+          Switch group
+        </Link>
       </header>
 
       <ol className="week-strip" aria-label="This week">
@@ -226,14 +256,33 @@ export default function Today() {
           <section className="flex flex-col gap-2.5" aria-label="Today's battles">
             {todays.length === 0 ? (
               <p className="tile bg-lavender">No battle today. Matches come out at {group.revealTime}.</p>
-            ) : (
-              todays.map((r) =>
-                r.phase === 'upcoming' ? (
-                  <Hidden key={r.view.record.id} row={r} />
-                ) : (
-                  <Fixture key={r.view.record.id} row={r} members={memberMap} viewerId={uid} />
-                ),
+            ) : todays.length === 1 ? (
+              todays[0].phase === 'upcoming' ? (
+                <Hidden row={todays[0]} />
+              ) : (
+                <Fixture row={todays[0]} members={memberMap} viewerId={uid} />
               )
+            ) : (
+              (() => {
+                // Several battles today: your own battle first and big, the rest as compact rows.
+                const mine = todays.find((r) => isMine(r, uid) && r.phase !== 'upcoming')
+                const others = todays.filter((r) => r !== mine)
+                return (
+                  <>
+                    {mine && <Fixture row={mine} members={memberMap} viewerId={uid} />}
+                    <h2 className="h-tile mt-1">
+                      {mine ? `Other battles today (${others.length})` : `Today's battles (${others.length})`}
+                    </h2>
+                    {others.map((r) =>
+                      r.phase === 'upcoming' ? (
+                        <Hidden key={r.view.record.id} row={r} />
+                      ) : (
+                        <CompactFixture key={r.view.record.id} row={r} members={memberMap} viewerId={uid} />
+                      ),
+                    )}
+                  </>
+                )
+              })()
             )}
           </section>
 

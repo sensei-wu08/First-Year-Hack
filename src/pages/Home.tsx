@@ -7,6 +7,8 @@ import { friendlyError, listMyGroups } from '../data/groups'
 import type { Group } from '../lib/types'
 
 const TILE_COLOURS = ['bg-pink', 'bg-sky', 'bg-mint', 'bg-tangerine', 'bg-lavender']
+/** Invite code of the seeded demo group "The Fit Crew" (set by scripts/seed.ts). */
+const EXAMPLE_CODE = 'fitcrew'
 
 /** Accepts a bare code or a pasted invite link; returns the last path segment after /j/. */
 function extractCode(raw: string): string {
@@ -71,7 +73,7 @@ export default function Home() {
         ) : groups === null ? (
           <p className="sub">Loading your groups</p>
         ) : groups.length === 0 ? (
-          <p className="tile bg-lavender">You're not in a group yet. Create one, or open an invite link from a friend.</p>
+          <p className="tile">You're not in a group yet. Join a friend's group below, or start your own.</p>
         ) : (
           <ul className="flex flex-col gap-2.5">
             {groups.map((g, i) => (
@@ -87,16 +89,27 @@ export default function Home() {
             ))}
           </ul>
         )}
-        <Link to="/new" className="btn">Create group</Link>
+        {groups !== null && !groups.some((g) => g.inviteCode === EXAMPLE_CODE) && (
+          <Link to={`/j/${EXAMPLE_CODE}`} className="tile bg-lime flex items-center justify-between gap-3 no-underline">
+            <span className="flex flex-col gap-1">
+              <span className="h-tile">See an example group</span>
+              <span className="text-small">The Fit Crew: six weeks of battles, a league table and Wrapped</span>
+            </span>
+            <span className="chip bg-ink text-white shrink-0 whitespace-nowrap" aria-hidden="true">Take a look</span>
+          </Link>
+        )}
         <form
-          className="tile flex flex-col gap-2.5"
+          className="tile bg-lavender flex flex-col gap-2.5"
           onSubmit={(e) => {
             e.preventDefault()
             const c = extractCode(code)
             if (c) navigate(`/j/${encodeURIComponent(c)}`)
           }}
         >
-          <label htmlFor="invite-code" className="h-tile">Have an invite code?</label>
+          <label htmlFor="invite-code" className="h-tile">Join a friend's group</label>
+          <p className="text-small">
+            Ask them for their invite code or link (it's in their Group tab), or scan their QR code with your phone camera. You can be in as many groups as you like.
+          </p>
           <input
             id="invite-code"
             className="input"
@@ -109,6 +122,7 @@ export default function Home() {
           />
           <button className="btn" type="submit" disabled={!extractCode(code)}>Join group</button>
         </form>
+        <Link to="/new" className="btn btn-ghost">Start your own group</Link>
       </div>
     </div>
   )

@@ -249,6 +249,8 @@ async function main() {
       .from('groups')
       .insert({
         name: GROUP_NAME,
+        // Fixed code so the app's "See an example group" card (Home) can link to /j/fitcrew.
+        invite_code: 'fitcrew',
         admin_id: me,
         reveal_time: TIMES.reveal,
         post_deadline_time: TIMES.postDeadline,
