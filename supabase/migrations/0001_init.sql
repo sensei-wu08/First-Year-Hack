@@ -608,8 +608,5 @@ create policy outfits_select_own_folder on storage.objects
   for select to authenticated
   using (bucket_id = 'outfits' and (storage.foldername(name))[1] = auth.uid()::text);
 
+-- No UPDATE policy: a posted photo can't be overwritten (one post per battler, no retake).
 drop policy if exists outfits_update_own_folder on storage.objects;
-create policy outfits_update_own_folder on storage.objects
-  for update to authenticated
-  using (bucket_id = 'outfits' and (storage.foldername(name))[1] = auth.uid()::text)
-  with check (bucket_id = 'outfits' and (storage.foldername(name))[1] = auth.uid()::text);
