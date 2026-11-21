@@ -1,0 +1,8 @@
+.env.local
+.env*.local
+.env.seed.local
+node_modules
+dist
+*.pptx
+STUDENT_GUIDE.pdf
+seed/photos/*.jpg
