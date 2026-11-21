@@ -376,6 +376,7 @@
   }
   .league-table th {
     padding: 4px 4px 8px;
+    white-space: nowrap;
     text-align: right;
     font-size: var(--text-caption);
     font-weight: 600;
