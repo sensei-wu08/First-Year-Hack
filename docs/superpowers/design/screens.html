@@ -60,6 +60,7 @@ figcaption span{display:block;font-weight:400;font-size:13px;max-width:360px;tex
 .btn:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--lime);outline-offset:2px}
 .chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:700;background:rgba(255,255,255,.16)}
 .chip.lime{background:var(--lime);color:var(--ink)} .chip.ink{background:var(--ink);color:var(--white)}
+.chip.t-mint{background:var(--mint)} .chip.t-pink{background:var(--pink)} .chip.t-sky{background:var(--sky)} .chip.t-lav{background:var(--lavender)}
 .chip.outline{background:transparent;box-shadow:inset 0 0 0 1.5px currentColor}
 
 /* stickers */
@@ -132,7 +133,7 @@ tr.me td .up{color:var(--ink)}
 tr.me td:first-child{border-radius:12px 0 0 12px} tr.me td:last-child{border-radius:0 12px 12px 0}
 .podium{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .podium .tile{padding:12px;text-align:left}
-.podium b{display:block;font-family:var(--display);font-size:22px;font-weight:800}
+.podium b{display:block;font-family:var(--display);font-size:16px;font-weight:800;overflow-wrap:anywhere}
 
 /* wrapped */
 .wrapped{background:var(--pink)}
@@ -218,6 +219,10 @@ tr.me td:first-child{border-radius:12px 0 0 12px} tr.me td:last-child{border-rad
     </div>
     <div class="tile t-ink row" style="padding:12px 14px"><span>Jae den has <b>2h 19m</b> to post</span><span class="chip lime">Marcus posted</span></div>
     <button class="btn">Vote now</button>
+    <div class="grid2">
+      <div class="tile t-lav" style="padding:12px 14px"><small style="font-weight:600">Yesterday</small><div class="h3">Priya 6–2</div></div>
+      <div class="tile t-tan" style="padding:12px 14px"><small style="font-weight:600">Your next battle</small><div class="h3">Fri vs Tom</div></div>
+    </div>
   </div>
   <div class="nav"><div class="on">Today</div><div>League</div><div>Chat</div><div>Group</div></div>
 </div>
