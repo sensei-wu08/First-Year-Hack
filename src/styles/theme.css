@@ -1127,3 +1127,6 @@
 .wr-card.wr-last {
   padding-bottom: calc(148px + env(safe-area-inset-bottom));
 }
+.wr-paused .wr-seg.on > i {
+  animation-play-state: paused;
+}

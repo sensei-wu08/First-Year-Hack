@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { clampLines, fitText, wrapText } from './shareCard'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { clampLines, deliverFile, fitText, needsFreshTap, wrapText } from './shareCard'
 
 const measure = (s: string) => s.length * 10
 
@@ -34,5 +34,29 @@ describe('fitText', () => {
 
   it('shortens with an ellipsis', () => {
     expect(fitText(measure, 'a long name here', 80)).toBe('a long…')
+  })
+})
+
+describe('deliverFile', () => {
+  const file = new File(['x'], 'fits-wrapped.png', { type: 'image/png' })
+  const err = (name: string) => Object.assign(new Error(name), { name })
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('shares when files can be shared', async () => {
+    const share = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('navigator', { canShare: () => true, share })
+    expect(await deliverFile(file)).toBe('shared')
+    expect(share).toHaveBeenCalledOnce()
+  })
+
+  it('treats a cancelled share as a no-op', async () => {
+    vi.stubGlobal('navigator', { canShare: () => true, share: vi.fn().mockRejectedValue(err('AbortError')) })
+    expect(await deliverFile(file)).toBe('cancelled')
+  })
+
+  it('rethrows NotAllowedError so the caller can ask for another tap', async () => {
+    vi.stubGlobal('navigator', { canShare: () => true, share: vi.fn().mockRejectedValue(err('NotAllowedError')) })
+    const caught = await deliverFile(file).catch((e: unknown) => e)
+    expect(needsFreshTap(caught)).toBe(true)
   })
 })

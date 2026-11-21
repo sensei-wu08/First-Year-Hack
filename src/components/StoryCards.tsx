@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState, useSyncExternalStore, type MouseEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type MouseEvent, type ReactNode } from 'react'
 import { APP_NAME, TONE_RULE } from '../brand'
 import { cleanText } from '../lib/filter'
 import type { CommentView, Member } from '../lib/types'
-import { shareCardImage, type ShareBlock, type ShareCardData, type ShareTone } from '../lib/shareCard'
+import { deliverFile, needsFreshTap, renderCardFile, type ShareBlock, type ShareCardData, type ShareTone } from '../lib/shareCard'
 import type { GroupWrapped, OutfitRef, PersonalWrapped } from '../lib/wrapped'
 import Avatar from './Avatar'
 import { formatPoints } from './LeagueTable'
@@ -16,6 +16,7 @@ export interface StoryCard {
 
 const TONES = ['wr-pink', 'wr-lime', 'wr-sky', 'wr-tangerine']
 const ADVANCE_MS = 6000
+const PRERENDER_MS = 300
 const REDUCED = '(prefers-reduced-motion: reduce)'
 
 function usePrefersReducedMotion(): boolean {
@@ -50,9 +51,70 @@ export default function StoryCards({ cards, onClose }: { cards: StoryCard[]; onC
     [index, last, onClose],
   )
 
-  const [sharing, setSharing] = useState(false)
-  const [shareFailed, setShareFailed] = useState(false)
-  useEffect(() => setShareFailed(false), [index])
+  const card = cards.length > 0 ? cards[Math.min(index, last)] : undefined
+  const tone = TONES[index % TONES.length].slice(3) as ShareTone
+
+  // Share state belongs to the card it started on. 'ready' means the image is rendered and the next tap shares it.
+  const [share, setShare] = useState<{ key: string; status: 'busy' | 'ready' | 'error' } | null>(null)
+  const mine = share && card && share.key === card.key ? share.status : null
+  const holding = mine === 'busy' || mine === 'ready'
+  const renders = useRef(new Map<string, { file?: File; promise: Promise<File> }>())
+
+  function ensureFile(key: string, data: ShareCardData, t: ShareTone): Promise<File> {
+    const map = renders.current
+    const hit = map.get(key)
+    if (hit) return hit.promise
+    const entry: { file?: File; promise: Promise<File> } = {
+      promise: renderCardFile(data, t).then(
+        (f) => {
+          entry.file = f
+          return f
+        },
+        (err) => {
+          if (map.get(key) === entry) map.delete(key)
+          throw err
+        },
+      ),
+    }
+    map.set(key, entry)
+    return entry.promise
+  }
+
+  // Render the share image in the background shortly after a shareable card appears, so a tap can share at once.
+  const key = card?.key
+  const shareData = card?.share
+  useEffect(() => {
+    if (!key || !shareData) return
+    const t = setTimeout(() => ensureFile(key, shareData, tone).catch(() => {}), PRERENDER_MS)
+    return () => clearTimeout(t)
+  }, [key, tone])
+
+  // An old failure message shouldn't follow the visitor to another card.
+  useEffect(() => setShare((s) => (s && s.status === 'error' ? null : s)), [key])
+
+  function onShare(e: MouseEvent) {
+    e.stopPropagation()
+    if (!card?.share || mine === 'busy') return
+    const k = card.key
+    const only = (status: 'busy' | 'ready' | 'error' | null) =>
+      setShare((cur) => (cur && cur.key !== k ? cur : status ? { key: k, status } : null))
+    const file = renders.current.get(k)?.file
+    if (file) {
+      // The image is ready: navigator.share runs synchronously inside this tap.
+      setShare({ key: k, status: 'busy' })
+      deliverFile(file).then(
+        () => only(null),
+        (err) => only(needsFreshTap(err) ? 'ready' : 'error'),
+      )
+      return
+    }
+    // Not ready yet: render it, then ask for a second tap (share() after awaits would lose the user gesture).
+    setShare({ key: k, status: 'busy' })
+    ensureFile(k, card.share, tone).then(
+      () => only('ready'),
+      () => only('error'),
+    )
+  }
 
   const [hidden, setHidden] = useState(() => document.hidden)
   useEffect(() => {
@@ -61,11 +123,21 @@ export default function StoryCards({ cards, onClose }: { cards: StoryCard[]; onC
     return () => document.removeEventListener('visibilitychange', onVisibility)
   }, [])
 
+  // Auto-advance with whatever time is left, so pausing (share, hidden tab) keeps the timer and the bar in step.
+  const remaining = useRef(ADVANCE_MS)
   useEffect(() => {
-    if (reduced || hidden || sharing || index >= last) return
-    const t = setTimeout(() => setIndex((n) => Math.min(last, n + 1)), ADVANCE_MS)
-    return () => clearTimeout(t)
-  }, [index, last, reduced, hidden, sharing])
+    remaining.current = ADVANCE_MS
+  }, [index])
+  useEffect(() => {
+    if (reduced || hidden || holding || index >= last) return
+    const ms = remaining.current
+    const startedAt = Date.now()
+    const t = setTimeout(() => setIndex((n) => Math.min(last, n + 1)), ms)
+    return () => {
+      clearTimeout(t)
+      remaining.current = Math.max(0, ms - (Date.now() - startedAt))
+    }
+  }, [index, last, reduced, hidden, holding])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -77,28 +149,12 @@ export default function StoryCards({ cards, onClose }: { cards: StoryCard[]; onC
     return () => window.removeEventListener('keydown', onKey)
   }, [go, onClose])
 
-  if (cards.length === 0) return null
-  const card = cards[Math.min(index, last)]
+  if (!card) return null
   const atEnd = index >= last
-  const tone = TONES[index % TONES.length].slice(3) as ShareTone
-
-  async function onShare(e: MouseEvent) {
-    e.stopPropagation()
-    if (sharing || !card.share) return
-    setSharing(true)
-    setShareFailed(false)
-    try {
-      await shareCardImage(card.share, tone)
-    } catch {
-      setShareFailed(true)
-    } finally {
-      setSharing(false)
-    }
-  }
 
   return (
     <div className="wr-stage">
-      <div className={`wr-frame ${TONES[index % TONES.length]}`}>
+      <div className={`wr-frame ${TONES[index % TONES.length]}${holding || hidden ? ' wr-paused' : ''}`}>
         <div className="wr-progress" aria-hidden="true">
           {cards.map((c, n) => (
             <span key={c.key} className={`wr-seg ${n < index || (n === index && (atEnd || reduced)) ? 'done' : n === index ? 'on' : ''}`}>
@@ -126,15 +182,13 @@ export default function StoryCards({ cards, onClose }: { cards: StoryCard[]; onC
               className="btn btn-dark wr-share"
               onClick={onShare}
               onPointerDown={(e) => e.stopPropagation()}
-              disabled={sharing}
+              disabled={mine === 'busy'}
             >
-              {sharing ? 'Sharing…' : 'Share'}
+              {mine === 'busy' ? 'Sharing…' : mine === 'ready' ? 'Tap to share' : 'Share'}
             </button>
-            {shareFailed && (
-              <p className="wr-share-err" role="status">
-                Couldn't share this card
-              </p>
-            )}
+            <p className="wr-share-err" role="status">
+              {mine === 'error' ? "Couldn't share this card" : ''}
+            </p>
           </div>
         )}
         {atEnd && (
@@ -184,7 +238,7 @@ function Quote({ comment, about }: { comment: CommentView; about?: string }) {
 function OutfitPhoto({ outfit, name, label }: { outfit: OutfitRef; name: string; label: string }) {
   return (
     <div className="wr-photo">
-      <img src={outfit.mediaPath} alt={`${name}'s fit`} />
+      <img src={outfit.mediaPath} crossOrigin="anonymous" alt={`${name}'s fit`} />
       <span className="pill absolute left-3.5 top-3.5 -rotate-6">{Math.round(outfit.share * 100)}%</span>
       <Sparkle className="right-3.5 top-3.5" />
       <span className="fixture-name absolute bottom-3.5 left-3.5">{label}</span>
@@ -522,7 +576,7 @@ export function personalCards(p: PersonalWrapped, ctx: { name: string; emoji: st
         blocks: [
           {
             kind: 'rows',
-            rows: p.perGroup.map((g) => ({
+            rows: p.perGroup.slice(0, 8).map((g) => ({
               rank: `#${g.rank}`,
               name: g.groupName,
               sub: `${g.w}–${g.d}–${g.l + g.f} · ${formatPoints(g.points)} pts`,

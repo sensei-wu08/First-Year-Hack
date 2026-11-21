@@ -138,13 +138,14 @@ export function drawCard(ctx: Ctx, pal: Palette, data: ShareCardData, photo: Can
       size -= 2
       ctx.font = `700 ${size}px ${BODY}`
     }
-    const w = Math.min(maxW, m(data.chip) + 56)
+    const chip = fitText(m, data.chip, maxW - 56)
+    const w = Math.min(maxW, m(chip) + 56)
     const h = 76
     ctx.fillStyle = pal.ink
     roundRectPath(ctx, PAD, top, w, h, h / 2)
     ctx.fill()
     ctx.fillStyle = pal.white
-    ctx.fillText(data.chip, PAD + 28, top + (h - size) / 2 - 2)
+    ctx.fillText(chip, PAD + 28, top + (h - size) / 2 - 2)
     top += h + GAP
   }
 
@@ -346,8 +347,10 @@ function render(pal: Palette, data: ShareCardData, photo: HTMLImageElement | nul
 
 export type ShareResult = 'shared' | 'downloaded' | 'cancelled'
 
-/** Renders the card to a 1080x1920 PNG, then shares it or downloads it. Rejects on real failures. */
-export async function shareCardImage(data: ShareCardData, tone: ShareTone): Promise<ShareResult> {
+const FILE_NAME = `${APP_NAME.toLowerCase()}-wrapped.png`
+
+/** Renders the card to a 1080x1920 PNG file. Slow (fonts, photo, encode), so call it ahead of the tap. */
+export async function renderCardFile(data: ShareCardData, tone: ShareTone): Promise<File> {
   await ensureFonts()
   const pal = readPalette(tone)
   const photoUrl = data.blocks.find((b) => b.kind === 'photo')?.url
@@ -360,25 +363,41 @@ export async function shareCardImage(data: ShareCardData, tone: ShareTone): Prom
     if (!photo) throw e
     blob = await render(pal, data, null)
   }
+  return new File([blob], FILE_NAME, { type: 'image/png' })
+}
 
-  const file = new File([blob], 'fits-wrapped.png', { type: 'image/png' })
+function errorName(e: unknown): string | undefined {
+  return (e as { name?: string } | null)?.name
+}
+
+/**
+ * Shares the file, or downloads it when the browser can't share files. Call it straight from a tap:
+ * `navigator.share` is the first thing that runs, so iOS still sees the user gesture.
+ * A cancelled share resolves 'cancelled'. A `NotAllowedError` (gesture expired) is rethrown for the caller to retry on the next tap.
+ */
+export async function deliverFile(file: File): Promise<ShareResult> {
   if (navigator.canShare?.({ files: [file] })) {
     try {
-      await navigator.share({ files: [file], title: 'My Fits Wrapped' })
+      await navigator.share({ files: [file], title: `My ${APP_NAME} Wrapped` })
       return 'shared'
     } catch (e) {
-      if (e instanceof Error && e.name === 'AbortError') return 'cancelled'
+      if (errorName(e) === 'AbortError') return 'cancelled'
       throw e
     }
   }
 
-  const href = URL.createObjectURL(blob)
+  const href = URL.createObjectURL(file)
   const a = document.createElement('a')
   a.href = href
-  a.download = 'fits-wrapped.png'
+  a.download = FILE_NAME
   document.body.appendChild(a)
   a.click()
   a.remove()
-  setTimeout(() => URL.revokeObjectURL(href), 1000)
+  setTimeout(() => URL.revokeObjectURL(href), 40_000)
   return 'downloaded'
+}
+
+/** True when the browser refused `share()` because the tap's user activation had run out. */
+export function needsFreshTap(e: unknown): boolean {
+  return errorName(e) === 'NotAllowedError'
 }
