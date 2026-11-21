@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { upsertProfile, useProfile } from '../data/auth'
+import { upsertProfile, useProfile, useSlowLoading } from '../data/auth'
 import { friendlyError, getGroupByInvite, joinGroup } from '../data/groups'
 import { validateName } from '../lib/validate'
 import { EMOJIS, ProfileFields } from './Onboard'
@@ -12,6 +12,7 @@ export default function Join() {
   const { code = '' } = useParams()
   const navigate = useNavigate()
   const { profile, loading: profileLoading } = useProfile()
+  const slow = useSlowLoading(profileLoading)
   const [invite, setInvite] = useState<Invite | null | undefined>(undefined)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [name, setName] = useState('')
@@ -69,7 +70,12 @@ export default function Join() {
       </>
     )
   } else if (invite === undefined || profileLoading) {
-    body = <p className="sub">Loading your invite</p>
+    body = (
+      <>
+        <p className="sub">Loading your invite</p>
+        {slow && <p className="sub">Still connecting… check your connection</p>}
+      </>
+    )
   } else if (invite === null) {
     body = (
       <p className="tile bg-pink font-bold" role="alert">

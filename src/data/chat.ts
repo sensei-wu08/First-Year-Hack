@@ -50,3 +50,14 @@ export async function sendMessage(groupId: string, body: string): Promise<void> 
   const { error } = await supabase.from('messages').insert({ group_id: groupId, body: text })
   if (error) throw new Error(error.message)
 }
+
+/** Plain copy for a failed send: our own validation messages pass through, RLS means the member left, the rest is a network problem. */
+export function friendlySendError(e: unknown): string {
+  const msg = e instanceof Error ? e.message : ''
+  if (msg === 'Write a message first' || msg.startsWith('Keep messages under')) return msg
+  const m = msg.toLowerCase()
+  if (m.includes('row-level security') || m.includes('permission denied') || m.includes('42501')) {
+    return "You're not in this group any more."
+  }
+  return "Couldn't send. Check your connection and try again."
+}

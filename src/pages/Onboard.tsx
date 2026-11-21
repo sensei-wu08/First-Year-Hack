@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { APP_NAME, TAGLINE } from '../brand'
-import { upsertProfile, useProfile } from '../data/auth'
+import { upsertProfile, useProfile, useSlowLoading } from '../data/auth'
 import { friendlyError } from '../data/groups'
 import { validateName } from '../lib/validate'
 
@@ -56,6 +56,7 @@ function safeNext(raw: string | null): string {
 
 export default function Onboard() {
   const { profile, loading } = useProfile()
+  const slow = useSlowLoading(loading)
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const [name, setName] = useState('')
@@ -101,6 +102,7 @@ export default function Onboard() {
         <button className="btn" type="submit" disabled={busy || loading}>
           {busy ? 'Saving' : profile ? 'Save profile' : "Let's go"}
         </button>
+        {slow && <p className="sub">Still connecting… check your connection</p>}
       </form>
     </div>
   )

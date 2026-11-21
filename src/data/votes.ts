@@ -111,6 +111,8 @@ export async function getShareBattle(code: string): Promise<ShareBattle | null> 
 
 // ---------- Polling and clock hooks (battle pages poll every 5 s, no Realtime) ----------
 
+const STALE_MS = 15000
+
 /**
  * Runs `load` now and every `intervalMs` while the tab is visible. Keeps the last good data when a poll
  * fails. `stopWhen` ends the interval once there is nothing left to wait for. `reload` always runs.
@@ -131,13 +133,16 @@ export function usePoll<T>(load: () => Promise<T>, stopWhen?: (d: T) => boolean,
     setState({ loaded: false, data: undefined, error: null })
     // inFlight: timer and visibility polls skip while a run is pending (slow Wi-Fi must not stack requests).
     // seq: only the latest run may write state, so a late stale response can't undo a newer one.
+    // A run in flight for over STALE_MS is treated as hung: the next tick may start a new one.
     let inFlight = false
+    let startedAt = 0
     let seq = 0
     const run = async (force = false) => {
       if (stopped && !force) return
-      if (inFlight && !force) return
+      if (inFlight && !force && Date.now() - startedAt < STALE_MS) return
       const mine = ++seq
       inFlight = true
+      startedAt = Date.now()
       try {
         const d = await load()
         if (cancelled || mine !== seq) return

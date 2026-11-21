@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { APP_NAME } from '../brand'
 import Avatar from '../components/Avatar'
-import { useProfile } from '../data/auth'
+import { useProfile, useSlowLoading } from '../data/auth'
 import { listMyGroups } from '../data/groups'
 import type { Group } from '../lib/types'
 
@@ -19,6 +19,7 @@ export default function Home() {
   const navigate = useNavigate()
   const [code, setCode] = useState('')
   const { profile, loading } = useProfile()
+  const slow = useSlowLoading(loading)
   const [groups, setGroups] = useState<Group[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
@@ -44,6 +45,7 @@ export default function Home() {
       <div className="set-today">
         <div className="screen app-col">
           <p className="sub">Loading</p>
+          {slow && <p className="sub">Still connecting… check your connection</p>}
         </div>
       </div>
     )

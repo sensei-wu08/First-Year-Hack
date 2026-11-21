@@ -348,7 +348,7 @@ async function main() {
     const crowdCount = p.state === 'today' ? Math.floor(r() * 5) : Math.floor(r() * 9)
 
     const voters: string[] = []
-    // The presenter keeps today's battle unvoted, so they can vote live in the demo.
+    // The presenter keeps today's battle unvoted, so they can vote live in the demo (it closes at 18:45).
     for (const m of memberIds) {
       if (m === sb.playerA || m === sb.playerB) continue
       if (p.state === 'today' && m === me) continue
@@ -372,6 +372,9 @@ async function main() {
     }
   })
 
+  // Today's battle stays open until 18:45 local (reveal and deadline unchanged), so it is still live at the 18:10 demo.
+  const todayResultsAt = new Date(now)
+  todayResultsAt.setHours(18, 45, 0, 0)
   await insertChunks(
     supabase,
     'battles',
@@ -383,7 +386,7 @@ async function main() {
       player_b: p.sb.playerB,
       reveal_at: p.sb.revealAt.toISOString(),
       post_deadline: p.sb.postDeadline.toISOString(),
-      results_at: p.sb.resultsAt.toISOString(),
+      results_at: (p.state === 'today' ? todayResultsAt : p.sb.resultsAt).toISOString(),
     })),
   )
   await insertChunks(supabase, 'posts', postRows)
@@ -401,7 +404,7 @@ async function main() {
   console.log(`  votes:    ${voteRows.length} (${comments} with comments)`)
   console.log(
     todays.length
-      ? `  today:    ${todays.map((p) => `${nameOf.get(p.sb.playerA)} vs ${nameOf.get(p.sb.playerB)}${p.sb.playerA === me || p.sb.playerB === me ? ' (you!)' : ''}`).join('; ')}, results 18:00`
+      ? `  today:    ${todays.map((p) => `${nameOf.get(p.sb.playerA)} vs ${nameOf.get(p.sb.playerB)}${p.sb.playerA === me || p.sb.playerB === me ? ' (you!)' : ''}`).join('; ')}, results 18:45`
       : '  today:    no battle scheduled today',
   )
   console.log(`  invite:   ${base ? `${base}/j/${group.invite_code}` : `<your app url>/j/${group.invite_code}`}  (code ${group.invite_code})`)

@@ -5,7 +5,7 @@ import { useGroupContext } from '../components/GroupLayout'
 import { InviteQr } from '../components/InviteQr'
 import { useProfile } from '../data/auth'
 import { friendlyError } from '../data/groups'
-import { currentSeason } from '../data/reads'
+import { currentSeason, listSeasons } from '../data/reads'
 import { leaveGroup, redateUpcoming, startSeason, updateGroupSettings } from '../data/seasons'
 import { defaultBattlesPerDay } from '../lib/scheduler'
 import { addDays, atLocalTime, localDateKey, monthKey } from '../lib/time'
@@ -76,6 +76,7 @@ export default function Settings() {
 
   const [form, setForm] = useState<Form>(() => fromGroup(group))
   const [season, setSeason] = useState<Season | null>(null)
+  const [endedSeason, setEndedSeason] = useState<Season | null>(null)
   const [seasonLoaded, setSeasonLoaded] = useState(false)
   const [saving, setSaving] = useState(false)
   const [needsRedate, setNeedsRedate] = useState(false)
@@ -91,7 +92,11 @@ export default function Settings() {
 
   const loadSeason = useCallback(async () => {
     try {
-      setSeason(await currentSeason(group.id))
+      const [current, all] = await Promise.all([currentSeason(group.id), listSeasons(group.id)])
+      setSeason(current)
+      // Wrapped is only for a season that has finished (ended before today, local date).
+      const today = localDateKey(new Date())
+      setEndedSeason([...all].filter((s) => s.endsOn < today).sort((a, b) => b.number - a.number)[0] ?? null)
     } catch (e) {
       setSeasonMsg({ kind: 'error', text: explain(e, 'Could not load the season. Check your connection and try again.') })
     } finally {
@@ -369,9 +374,9 @@ export default function Settings() {
 
       <section className="tile bg-lavender flex flex-col gap-2" aria-label="Wrapped">
         <h2 className="h-tile">Wrapped</h2>
-        {season && (
-          <Link to={`/g/${group.id}/wrapped/${season.id}`} className="btn btn-dark">
-            See season {season.number} Wrapped
+        {endedSeason && (
+          <Link to={`/g/${group.id}/wrapped/${endedSeason.id}`} className="btn btn-dark">
+            See season {endedSeason.number} Wrapped
           </Link>
         )}
         <Link to={`/me/wrapped/${lastMonth}`} className="btn btn-ghost">

@@ -3,7 +3,7 @@ import { ReportButton } from '../components/ReportButton'
 import { useGroupContext } from '../components/GroupLayout'
 import { TONE_RULE } from '../brand'
 import { useProfile } from '../data/auth'
-import { listMessages, sendMessage, type ChatMessage } from '../data/chat'
+import { friendlySendError, listMessages, sendMessage, type ChatMessage } from '../data/chat'
 
 const POLL_MS = 5000
 const NEAR_BOTTOM_PX = 80
@@ -31,6 +31,7 @@ export default function Chat() {
   const listRef = useRef<HTMLDivElement>(null)
   const stickRef = useRef(true)
   const refreshRef = useRef<() => void>(() => {})
+  const sendingRef = useRef(false)
 
   // Poll every 5 s. One request at a time (a tick is skipped while one is pending), and a response
   // older than one already applied is ignored.
@@ -101,7 +102,8 @@ export default function Chat() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
     const body = draft.trim()
-    if (!body || sending) return
+    if (!body || sendingRef.current) return
+    sendingRef.current = true
     setSending(true)
     setSendError(null)
     try {
@@ -110,8 +112,9 @@ export default function Chat() {
       stickRef.current = true
       refreshRef.current()
     } catch (err) {
-      setSendError(err instanceof Error ? err.message : 'Could not send that message')
+      setSendError(friendlySendError(err))
     } finally {
+      sendingRef.current = false
       setSending(false)
     }
   }

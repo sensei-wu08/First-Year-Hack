@@ -141,7 +141,9 @@ export default function Today() {
           if (!cancelled) setError(friendlyError(e, 'Could not load battles. Check your connection and try again.'))
         })
     load()
-    const id = setInterval(load, POLL_MS)
+    const id = setInterval(() => {
+      if (!document.hidden) load()
+    }, POLL_MS)
     return () => {
       cancelled = true
       clearInterval(id)
