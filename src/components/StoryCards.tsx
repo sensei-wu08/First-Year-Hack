@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type MouseEvent, type ReactNode } from 'react'
 import { APP_NAME, TONE_RULE } from '../brand'
 import { cleanText } from '../lib/filter'
 import type { CommentView, Member } from '../lib/types'
+import { deliverFile, needsFreshTap, renderCardFile, type ShareBlock, type ShareCardData, type ShareTone } from '../lib/shareCard'
 import type { GroupWrapped, OutfitRef, PersonalWrapped } from '../lib/wrapped'
 import Avatar from './Avatar'
 import { formatPoints } from './LeagueTable'
@@ -9,10 +10,13 @@ import { formatPoints } from './LeagueTable'
 export interface StoryCard {
   key: string
   body: ReactNode
+  /** What the Share button draws. Cards without it have no Share button. */
+  share?: ShareCardData
 }
 
 const TONES = ['wr-pink', 'wr-lime', 'wr-sky', 'wr-tangerine']
 const ADVANCE_MS = 6000
+const PRERENDER_MS = 300
 const REDUCED = '(prefers-reduced-motion: reduce)'
 
 function usePrefersReducedMotion(): boolean {
@@ -47,6 +51,71 @@ export default function StoryCards({ cards, onClose }: { cards: StoryCard[]; onC
     [index, last, onClose],
   )
 
+  const card = cards.length > 0 ? cards[Math.min(index, last)] : undefined
+  const tone = TONES[index % TONES.length].slice(3) as ShareTone
+
+  // Share state belongs to the card it started on. 'ready' means the image is rendered and the next tap shares it.
+  const [share, setShare] = useState<{ key: string; status: 'busy' | 'ready' | 'error' } | null>(null)
+  const mine = share && card && share.key === card.key ? share.status : null
+  const holding = mine === 'busy' || mine === 'ready'
+  const renders = useRef(new Map<string, { file?: File; promise: Promise<File> }>())
+
+  function ensureFile(key: string, data: ShareCardData, t: ShareTone): Promise<File> {
+    const map = renders.current
+    const hit = map.get(key)
+    if (hit) return hit.promise
+    const entry: { file?: File; promise: Promise<File> } = {
+      promise: renderCardFile(data, t).then(
+        (f) => {
+          entry.file = f
+          return f
+        },
+        (err) => {
+          if (map.get(key) === entry) map.delete(key)
+          throw err
+        },
+      ),
+    }
+    map.set(key, entry)
+    return entry.promise
+  }
+
+  // Render the share image in the background shortly after a shareable card appears, so a tap can share at once.
+  const key = card?.key
+  const shareData = card?.share
+  useEffect(() => {
+    if (!key || !shareData) return
+    const t = setTimeout(() => ensureFile(key, shareData, tone).catch(() => {}), PRERENDER_MS)
+    return () => clearTimeout(t)
+  }, [key, tone])
+
+  // An old failure message shouldn't follow the visitor to another card.
+  useEffect(() => setShare((s) => (s && s.status === 'error' ? null : s)), [key])
+
+  function onShare(e: MouseEvent) {
+    e.stopPropagation()
+    if (!card?.share || mine === 'busy') return
+    const k = card.key
+    const only = (status: 'busy' | 'ready' | 'error' | null) =>
+      setShare((cur) => (cur && cur.key !== k ? cur : status ? { key: k, status } : null))
+    const file = renders.current.get(k)?.file
+    if (file) {
+      // The image is ready: navigator.share runs synchronously inside this tap.
+      setShare({ key: k, status: 'busy' })
+      deliverFile(file).then(
+        () => only(null),
+        (err) => only(needsFreshTap(err) ? 'ready' : 'error'),
+      )
+      return
+    }
+    // Not ready yet: render it, then ask for a second tap (share() after awaits would lose the user gesture).
+    setShare({ key: k, status: 'busy' })
+    ensureFile(k, card.share, tone).then(
+      () => only('ready'),
+      () => only('error'),
+    )
+  }
+
   const [hidden, setHidden] = useState(() => document.hidden)
   useEffect(() => {
     const onVisibility = () => setHidden(document.hidden)
@@ -54,11 +123,21 @@ export default function StoryCards({ cards, onClose }: { cards: StoryCard[]; onC
     return () => document.removeEventListener('visibilitychange', onVisibility)
   }, [])
 
+  // Auto-advance with whatever time is left, so pausing (share, hidden tab) keeps the timer and the bar in step.
+  const remaining = useRef(ADVANCE_MS)
   useEffect(() => {
-    if (reduced || hidden || index >= last) return
-    const t = setTimeout(() => setIndex((n) => Math.min(last, n + 1)), ADVANCE_MS)
-    return () => clearTimeout(t)
-  }, [index, last, reduced, hidden])
+    remaining.current = ADVANCE_MS
+  }, [index])
+  useEffect(() => {
+    if (reduced || hidden || holding || index >= last) return
+    const ms = remaining.current
+    const startedAt = Date.now()
+    const t = setTimeout(() => setIndex((n) => Math.min(last, n + 1)), ms)
+    return () => {
+      clearTimeout(t)
+      remaining.current = Math.max(0, ms - (Date.now() - startedAt))
+    }
+  }, [index, last, reduced, hidden, holding])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -70,13 +149,12 @@ export default function StoryCards({ cards, onClose }: { cards: StoryCard[]; onC
     return () => window.removeEventListener('keydown', onKey)
   }, [go, onClose])
 
-  if (cards.length === 0) return null
-  const card = cards[Math.min(index, last)]
+  if (!card) return null
   const atEnd = index >= last
 
   return (
     <div className="wr-stage">
-      <div className={`wr-frame ${TONES[index % TONES.length]}`}>
+      <div className={`wr-frame ${TONES[index % TONES.length]}${holding || hidden ? ' wr-paused' : ''}`}>
         <div className="wr-progress" aria-hidden="true">
           {cards.map((c, n) => (
             <span key={c.key} className={`wr-seg ${n < index || (n === index && (atEnd || reduced)) ? 'done' : n === index ? 'on' : ''}`}>
@@ -97,6 +175,22 @@ export default function StoryCards({ cards, onClose }: { cards: StoryCard[]; onC
           onClick={() => go(1)}
           aria-label={atEnd ? 'Close' : 'Next card'}
         />
+        {card.share && (
+          <div className="wr-share-row">
+            <button
+              type="button"
+              className="btn btn-dark wr-share"
+              onClick={onShare}
+              onPointerDown={(e) => e.stopPropagation()}
+              disabled={mine === 'busy'}
+            >
+              {mine === 'busy' ? 'Sharing…' : mine === 'ready' ? 'Tap to share' : 'Share'}
+            </button>
+            <p className="wr-share-err" role="status">
+              {mine === 'error' ? "Couldn't share this card" : ''}
+            </p>
+          </div>
+        )}
         {atEnd && (
           <button type="button" className="btn btn-dark wr-done" onClick={onClose}>
             Done
@@ -144,12 +238,24 @@ function Quote({ comment, about }: { comment: CommentView; about?: string }) {
 function OutfitPhoto({ outfit, name, label }: { outfit: OutfitRef; name: string; label: string }) {
   return (
     <div className="wr-photo">
-      <img src={outfit.mediaPath} alt={`${name}'s fit`} />
+      <img src={outfit.mediaPath} crossOrigin="anonymous" alt={`${name}'s fit`} />
       <span className="pill absolute left-3.5 top-3.5 -rotate-6">{Math.round(outfit.share * 100)}%</span>
       <Sparkle className="right-3.5 top-3.5" />
       <span className="fixture-name absolute bottom-3.5 left-3.5">{label}</span>
     </div>
   )
+}
+
+function photoBlock(outfit: OutfitRef, label: string): ShareBlock {
+  return { kind: 'photo', url: outfit.mediaPath, label, badge: `${Math.round(outfit.share * 100)}%` }
+}
+
+function quoteBlocks(comment: CommentView, about?: string): ShareBlock[] {
+  const who = `${comment.authorEmoji ? `${comment.authorEmoji} ` : ''}${comment.authorName}${about ? ` on ${about}'s fit` : ''}`
+  return [
+    { kind: 'quote', text: cleanText(comment.body).text },
+    { kind: 'line', text: who },
+  ]
 }
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
@@ -162,6 +268,7 @@ function monthName(month: string): string {
 function outroCard(): StoryCard {
   return {
     key: 'outro',
+    share: { chip: "That's a wrap", blocks: [{ kind: 'title', text: TONE_RULE }, { kind: 'line', text: 'See you next time.' }] },
     body: (
       <>
         <Chip>That's a wrap</Chip>
@@ -182,13 +289,21 @@ export function groupCards(
   const nameOf = (id: string) => names.get(id) ?? 'Someone'
   const title = ctx.seasonNumber === null ? 'Wrapped' : `Season ${ctx.seasonNumber} Wrapped`
 
+  const introHero = ctx.seasonNumber === null ? '🏆' : `S${ctx.seasonNumber}`
   const cards: StoryCard[] = [
     {
       key: 'intro',
+      share: {
+        chip: ctx.groupName,
+        blocks: [
+          { kind: 'hero', text: introHero },
+          { kind: 'line', text: `${title}. Here's how it all went down.` },
+        ],
+      },
       body: (
         <>
           <Chip>{ctx.groupName}</Chip>
-          <Hero>{ctx.seasonNumber === null ? '🏆' : `S${ctx.seasonNumber}`}</Hero>
+          <Hero>{introHero}</Hero>
           <Line>{title}. Here's how it all went down.</Line>
         </>
       ),
@@ -198,6 +313,13 @@ export function groupCards(
   if (!w.champion) {
     cards.push({
       key: 'empty',
+      share: {
+        chip: 'Nothing yet',
+        blocks: [
+          { kind: 'title', text: 'No battles have finished yet.' },
+          { kind: 'line', text: 'Come back once the first results are in.' },
+        ],
+      },
       body: (
         <>
           <Chip>Nothing yet</Chip>
@@ -214,6 +336,13 @@ export function groupCards(
   cards.push(
     {
       key: 'votes',
+      share: {
+        chip: 'The numbers',
+        blocks: [
+          { kind: 'hero', text: String(w.totalVotes) },
+          { kind: 'line', text: `${w.totalVotes === 1 ? 'vote' : 'votes'} across ${plural(w.battlesPlayed, 'battle')}.` },
+        ],
+      },
       body: (
         <>
           <Chip>The numbers</Chip>
@@ -226,6 +355,14 @@ export function groupCards(
     },
     {
       key: 'champion',
+      share: {
+        chip: 'Champion',
+        blocks: [
+          { kind: 'title', text: `${c.emoji} ${c.name}` },
+          { kind: 'hero', text: formatPoints(c.points) },
+          { kind: 'line', text: `points, from ${plural(c.won, 'win')} in ${plural(c.played, 'battle')}.` },
+        ],
+      },
       body: (
         <>
           <Chip>Champion</Chip>
@@ -241,6 +378,17 @@ export function groupCards(
     },
     {
       key: 'table',
+      share: {
+        chip: 'Final table',
+        blocks: [
+          {
+            kind: 'rows',
+            rows: w.finalTable
+              .slice(0, 5)
+              .map((r) => ({ rank: String(r.rank), name: `${r.emoji} ${r.name}`, end: formatPoints(r.points) })),
+          },
+        ],
+      },
       body: (
         <>
           <Chip>Final table</Chip>
@@ -263,6 +411,13 @@ export function groupCards(
     const r = w.rivalry
     cards.push({
       key: 'rivalry',
+      share: {
+        chip: 'Closest battle',
+        blocks: [
+          { kind: 'hero', text: `${r.votesA}–${r.votesB}` },
+          { kind: 'line', text: `${nameOf(r.a)} vs ${nameOf(r.b)} went down to the wire.` },
+        ],
+      },
       body: (
         <>
           <Chip>Closest battle</Chip>
@@ -279,6 +434,16 @@ export function groupCards(
     const g = w.ghost
     cards.push({
       key: 'ghost',
+      share: {
+        chip: 'Ghost award',
+        blocks: [
+          { kind: 'hero', text: String(g.forfeits) },
+          {
+            kind: 'line',
+            text: `${nameOf(g.profileId)} missed the posting deadline ${g.forfeits === 1 ? 'once' : `${g.forfeits} times`}. The Ghost award is yours.`,
+          },
+        ],
+      },
       body: (
         <>
           <Chip>Ghost award</Chip>
@@ -296,6 +461,10 @@ export function groupCards(
     const o = w.topOutfit
     cards.push({
       key: 'outfit',
+      share: {
+        chip: 'Most-voted fit',
+        blocks: [photoBlock(o, nameOf(o.profileId)), { kind: 'line', text: `${plural(o.votes, 'vote')}. Nobody got more.` }],
+      },
       body: (
         <>
           <Chip>Most-voted fit</Chip>
@@ -309,6 +478,10 @@ export function groupCards(
   if (w.commentOfSeason && w.topOutfit) {
     cards.push({
       key: 'comment',
+      share: {
+        chip: 'Comment of the season',
+        blocks: quoteBlocks(w.commentOfSeason, nameOf(w.topOutfit.profileId)),
+      },
       body: (
         <>
           <Chip>Comment of the season</Chip>
@@ -329,6 +502,14 @@ export function personalCards(p: PersonalWrapped, ctx: { name: string; emoji: st
   const cards: StoryCard[] = [
     {
       key: 'intro',
+      share: {
+        chip: `${APP_NAME} Wrapped`,
+        blocks: [
+          { kind: 'hero', text: ctx.emoji },
+          { kind: 'title', text: `Your ${month}` },
+          { kind: 'line', text: 'A month of fits, wrapped.' },
+        ],
+      },
       body: (
         <>
           <Chip>{APP_NAME} Wrapped</Chip>
@@ -343,6 +524,13 @@ export function personalCards(p: PersonalWrapped, ctx: { name: string; emoji: st
   if (p.perGroup.length === 0) {
     cards.push({
       key: 'empty',
+      share: {
+        chip: 'Nothing yet',
+        blocks: [
+          { kind: 'title', text: `No battles finished in ${month}.` },
+          { kind: 'line', text: 'Your Wrapped fills up after your next results.' },
+        ],
+      },
       body: (
         <>
           <Chip>Nothing yet</Chip>
@@ -356,13 +544,24 @@ export function personalCards(p: PersonalWrapped, ctx: { name: string; emoji: st
   }
 
   const r = p.record
+  const recordHero = r.d > 0 ? `${r.w}–${r.d}–${r.l + r.f}` : `${r.w}–${r.l + r.f}`
   cards.push(
     {
       key: 'record',
+      share: {
+        chip: 'Your record',
+        blocks: [
+          { kind: 'hero', text: recordHero },
+          {
+            kind: 'line',
+            text: `${ctx.name}, you won ${r.w} of your ${plural(total, 'battle')} and earned ${formatPoints(r.points)} ${Math.abs(r.points) === 1 ? 'point' : 'points'}.`,
+          },
+        ],
+      },
       body: (
         <>
           <Chip>Your record</Chip>
-          <Hero>{r.d > 0 ? `${r.w}–${r.d}–${r.l + r.f}` : `${r.w}–${r.l + r.f}`}</Hero>
+          <Hero>{recordHero}</Hero>
           <Line>
             {ctx.name}, you won {r.w} of your {plural(total, 'battle')} and earned {formatPoints(r.points)}{' '}
             {Math.abs(r.points) === 1 ? 'point' : 'points'}.
@@ -372,6 +571,20 @@ export function personalCards(p: PersonalWrapped, ctx: { name: string; emoji: st
     },
     {
       key: 'ranks',
+      share: {
+        chip: 'Where you finished',
+        blocks: [
+          {
+            kind: 'rows',
+            rows: p.perGroup.slice(0, 8).map((g) => ({
+              rank: `#${g.rank}`,
+              name: g.groupName,
+              sub: `${g.w}–${g.d}–${g.l + g.f} · ${formatPoints(g.points)} pts`,
+              end: `of ${g.of}`,
+            })),
+          },
+        ],
+      },
       body: (
         <>
           <Chip>Where you finished</Chip>
@@ -397,6 +610,13 @@ export function personalCards(p: PersonalWrapped, ctx: { name: string; emoji: st
   if (p.bestOutfit) {
     cards.push({
       key: 'outfit',
+      share: {
+        chip: 'Your best fit',
+        blocks: [
+          photoBlock(p.bestOutfit, 'Your best fit'),
+          { kind: 'line', text: `${plural(p.bestOutfit.votes, 'vote')} on this one, ${plural(p.votesReceived, 'vote')} in all.` },
+        ],
+      },
       body: (
         <>
           <Chip>Your best fit</Chip>
@@ -412,6 +632,7 @@ export function personalCards(p: PersonalWrapped, ctx: { name: string; emoji: st
   if (p.bestComment) {
     cards.push({
       key: 'comment',
+      share: { chip: 'A comment about your fit', blocks: quoteBlocks(p.bestComment) },
       body: (
         <>
           <Chip>A comment about your fit</Chip>

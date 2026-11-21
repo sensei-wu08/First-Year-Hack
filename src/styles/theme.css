@@ -1093,3 +1093,41 @@
     opacity: 0.6;
   }
 }
+
+/* === share-wrapped === */
+/* Share pill on each Wrapped card. Sits bottom-left; on the last card it rides above the Done button. */
+.wr-share-row {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: calc(28px + env(safe-area-inset-bottom));
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+.wr-card.wr-last ~ .wr-share-row {
+  bottom: calc(92px + env(safe-area-inset-bottom));
+}
+.btn.wr-share {
+  width: auto;
+  padding: 10px 18px;
+  font-size: var(--text-small);
+  pointer-events: auto;
+}
+.wr-share-err {
+  min-width: 0;
+  font-size: var(--text-small);
+  font-weight: 800;
+  line-height: 1.2;
+}
+.wr-card {
+  padding-bottom: calc(84px + env(safe-area-inset-bottom));
+}
+.wr-card.wr-last {
+  padding-bottom: calc(148px + env(safe-area-inset-bottom));
+}
+.wr-paused .wr-seg.on > i {
+  animation-play-state: paused;
+}
