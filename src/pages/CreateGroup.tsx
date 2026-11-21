@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { InviteQr } from '../components/InviteQr'
-import { createGroup } from '../data/groups'
+import { createGroup, friendlyError } from '../data/groups'
 import { getGroup } from '../data/reads'
 import { cleanText } from '../lib/filter'
 
@@ -26,7 +26,7 @@ export default function CreateGroup() {
       const g = await getGroup(id)
       setCreated({ id, name: g.name, inviteCode: g.inviteCode })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not create the group. Try again.')
+      setError(friendlyError(err, 'Could not create the group. Try again.'))
       setBusy(false)
     }
   }

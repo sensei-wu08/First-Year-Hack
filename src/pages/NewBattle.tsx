@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useGroupContext } from '../components/GroupLayout'
 import { useProfile } from '../data/auth'
-import { createCustomBattle } from '../data/groups'
+import { createCustomBattle, friendlyError } from '../data/groups'
 import { atLocalTime, localDateKey } from '../lib/time'
 
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -14,7 +14,7 @@ function toInput(d: Date): string {
 }
 
 export default function NewBattle() {
-  const { group, members } = useGroupContext()
+  const { group, members, reload } = useGroupContext()
   const { uid, loading } = useProfile()
   const navigate = useNavigate()
   const today = localDateKey(new Date())
@@ -25,6 +25,10 @@ export default function NewBattle() {
   const [results, setResults] = useState(toInput(atLocalTime(today, group.resultsTime)))
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+
+  // Members may have joined since the group opened, so refetch once on mount.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { reload() }, [])
 
   const active = members.filter((m) => !m.leftAt)
 
@@ -72,7 +76,7 @@ export default function NewBattle() {
       const id = await createCustomBattle({ groupId: group.id, playerA, playerB, revealAt, postDeadline, resultsAt })
       navigate(`/b/${id}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not create the battle. Try again.')
+      setError(friendlyError(err, 'Could not create the battle. Try again.'))
       setBusy(false)
     }
   }

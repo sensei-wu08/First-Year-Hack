@@ -5,6 +5,7 @@ import { InviteQr } from '../components/InviteQr'
 import { useGroupContext } from '../components/GroupLayout'
 import PhaseBadge from '../components/PhaseBadge'
 import { useProfile } from '../data/auth'
+import { friendlyError } from '../data/groups'
 import { postedOf } from '../data/mappers'
 import { listBattles, listSeasons } from '../data/reads'
 import { battlePhase } from '../lib/phase'
@@ -45,22 +46,31 @@ function Side({ view, member, side }: { view: BattleView; member: Member | undef
   )
 }
 
-function Fixture({ row, members }: { row: Row; members: Map<string, Member> }) {
+function ctaLabel(row: Row, viewerId: string | null): string {
+  const { view, phase } = row
+  const mine = viewerId === view.record.playerA ? 'a' : viewerId === view.record.playerB ? 'b' : null
+  if (phase === 'posting' && mine && !postedOf(view)[mine]) return 'Post my fit'
+  if (phase === 'voting' && !mine) return 'Vote now'
+  if (phase === 'results') return 'See results'
+  return 'Open battle'
+}
+
+function Fixture({ row, members, viewerId }: { row: Row; members: Map<string, Member>; viewerId: string | null }) {
   const { view, phase } = row
   const a = members.get(view.record.playerA)
   const b = members.get(view.record.playerB)
   const posted = postedOf(view)
   return (
-    <Link
-      to={`/b/${view.record.id}`}
-      className="flex flex-col gap-2.5 text-white no-underline"
-      aria-label={`${a?.name ?? 'Player'} versus ${b?.name ?? 'Player'}`}
-    >
-      <div className="versus">
+    <div className="flex flex-col gap-2.5">
+      <Link
+        to={`/b/${view.record.id}`}
+        className="versus block"
+        aria-label={`${a?.name ?? 'Player'} versus ${b?.name ?? 'Player'}, ${phase}`}
+      >
         <Side view={view} member={a} side="a" />
         <Side view={view} member={b} side="b" />
         <span className="vs-badge" aria-hidden="true">vs</span>
-      </div>
+      </Link>
       <div className="tile tile-sm bg-ink flex flex-wrap items-center justify-between gap-2">
         <PhaseBadge phase={phase} />
         <span className="flex flex-wrap gap-1.5">
@@ -72,7 +82,8 @@ function Fixture({ row, members }: { row: Row; members: Map<string, Member> }) {
           </span>
         </span>
       </div>
-    </Link>
+      <Link to={`/b/${view.record.id}`} className="btn">{ctaLabel(row, viewerId)}</Link>
+    </div>
   )
 }
 
@@ -103,13 +114,17 @@ function PastRow({ row, members }: { row: Row; members: Map<string, Member> }) {
 }
 
 export default function Today() {
-  const { group, members } = useGroupContext()
+  const { group, members, reload } = useGroupContext()
   const { uid } = useProfile()
   const [battles, setBattles] = useState<BattleView[] | null>(null)
   const [seasons, setSeasons] = useState<Season[]>([])
   const [error, setError] = useState<string | null>(null)
   const [now, setNow] = useState(() => new Date())
   const [tick, setTick] = useState(0)
+
+  // Members may have joined since the group opened, so refetch them once on mount.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { reload() }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -123,7 +138,7 @@ export default function Today() {
           setNow(new Date())
         })
         .catch((e) => {
-          if (!cancelled) setError(e instanceof Error ? e.message : 'Could not load battles.')
+          if (!cancelled) setError(friendlyError(e, 'Could not load battles. Check your connection and try again.'))
         })
     load()
     const id = setInterval(load, POLL_MS)
@@ -193,7 +208,7 @@ export default function Today() {
                 r.phase === 'upcoming' ? (
                   <Hidden key={r.view.record.id} row={r} />
                 ) : (
-                  <Fixture key={r.view.record.id} row={r} members={memberMap} />
+                  <Fixture key={r.view.record.id} row={r} members={memberMap} viewerId={uid} />
                 ),
               )
             )}

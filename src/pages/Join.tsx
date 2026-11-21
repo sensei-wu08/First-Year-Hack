@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { upsertProfile, useProfile } from '../data/auth'
-import { getGroupByInvite, joinGroup } from '../data/groups'
+import { friendlyError, getGroupByInvite, joinGroup } from '../data/groups'
 import { validateName } from '../lib/validate'
 import { EMOJIS, ProfileFields } from './Onboard'
 
@@ -29,7 +29,7 @@ export default function Join() {
         if (!cancelled) setInvite(g)
       })
       .catch((e) => {
-        if (!cancelled) setLoadError(e instanceof Error ? e.message : 'Could not load this invite.')
+        if (!cancelled) setLoadError(friendlyError(e, 'Could not load this invite. Check your connection and try again.'))
       })
     return () => {
       cancelled = true
@@ -55,12 +55,7 @@ export default function Join() {
       const groupId = await joinGroup(code)
       navigate(`/g/${groupId}`, { replace: true })
     } catch (err) {
-      const msg = err instanceof Error ? err.message : ''
-      setError(
-        msg.includes('bad_code')
-          ? "This invite link isn't valid. Ask for a new one."
-          : 'Could not join this group. Check your connection and try again.',
-      )
+      setError(friendlyError(err, 'Could not join this group. Check your connection and try again.'))
       setBusy(false)
     }
   }

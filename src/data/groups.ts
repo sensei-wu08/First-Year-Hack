@@ -86,3 +86,22 @@ export async function createCustomBattle(i: {
   if (error) throw new Error(error.message)
   return data.id as string
 }
+
+/** Turns a server error (RPC code, RLS or rate-limit message) into plain sentence-case copy. */
+export function friendlyError(e: unknown, fallback: string): string {
+  const msg = e instanceof Error ? e.message : typeof e === 'string' ? e : ''
+  const m = msg.toLowerCase()
+  if (m.includes('bad_code')) return "This invite link isn't valid. Ask for a new one."
+  if (m.includes('no_profile')) return 'Set your name and emoji first, then try again.'
+  if (m.includes('bad_name')) return 'Pick a name between 1 and 40 characters.'
+  if (m.includes('not_allowed') || m.includes('row-level security') || m.includes('permission denied')) {
+    return "You don't have permission to do that. Only the group admin can."
+  }
+  if (m.includes('rate limit') || m.includes('too many')) {
+    return 'Too many people are signing in at once. Wait a minute and try again.'
+  }
+  if (m.includes('failed to fetch') || m.includes('network')) {
+    return 'Could not reach the server. Check your connection and try again.'
+  }
+  return fallback
+}

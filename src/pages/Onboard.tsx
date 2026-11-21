@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { APP_NAME, TAGLINE } from '../brand'
 import { upsertProfile, useProfile } from '../data/auth'
+import { friendlyError } from '../data/groups'
 import { validateName } from '../lib/validate'
 
 export const EMOJIS = ['🦊', '🐸', '🦄', '🐙', '🌵', '🐼', '🐯', '🐵', '🦖', '🍕', '🌈', '🔥', '👑', '🧢', '👟', '🦋']
@@ -82,7 +83,7 @@ export default function Onboard() {
       await upsertProfile(v.value, emoji)
       navigate(safeNext(params.get('next')), { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not save your profile. Try again.')
+      setError(friendlyError(err, 'Could not save your profile. Try again.'))
       setBusy(false)
     }
   }
