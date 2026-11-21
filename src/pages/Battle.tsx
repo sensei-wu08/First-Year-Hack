@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 import { InviteQr } from '../components/InviteQr'
 import PhaseBadge from '../components/PhaseBadge'
 import { PostPanel } from '../components/PostPanel'
+import { ReactionRow } from '../components/ReactionRow'
 import { ResultsReveal } from '../components/ResultsReveal'
 import { FitSide, VersusSeam } from '../components/VersusSeam'
 import { VoteSplit } from '../components/VoteSplit'
@@ -279,6 +280,9 @@ export default function Battle() {
       )}
 
       {body}
+      {(phase === 'voting' || phase === 'awaiting_results' || phase === 'results') && (
+        <ReactionRow battleId={battleId} posted={posted} names={[players[0].name, players[1].name]} />
+      )}
 
       {canRevealNow && <RevealNow battleId={battleId} note={noteFor} onDone={() => void reload()} />}
       {isAdmin && group.allowShareVoting && phase !== 'void' && (
