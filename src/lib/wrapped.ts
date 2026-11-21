@@ -185,8 +185,10 @@ export function personalWrapped(
     const { members, facts, comments, now } = g.input
     const allResults = resolveAll(facts, now)
     const results = allResults.filter((r) => monthKey(r.resolvedAt) === month)
-    // Awards need the whole season to know when a week is done; keep the ones awarded this month.
-    const awards = outfitOfTheWeekAwards(facts, allResults, now).filter((a) => monthKey(a.awardedAt) === month)
+    // Awards need the whole season to know when a week is done. File each under the month its own
+    // battle resolved, so a week that ends in the next month still counts where the battle was fought.
+    const resolvedMonth = new Map(allResults.map((r) => [r.battleId, monthKey(r.resolvedAt)]))
+    const awards = outfitOfTheWeekAwards(facts, allResults, now).filter((a) => resolvedMonth.get(a.battleId) === month)
 
     const table = buildTable(members, results, awards)
     const row = table.find((r) => r.profileId === profileId)

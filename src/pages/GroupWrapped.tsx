@@ -19,7 +19,7 @@ export default function GroupWrapped() {
   const [data, setData] = useState<Loaded | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
-  const back = `/g/${group.id}/settings`
+  const back = `/g/${group.id}`
 
   useEffect(() => {
     let cancelled = false
@@ -50,7 +50,7 @@ export default function GroupWrapped() {
   if (!data) {
     return (
       <div className="screen">
-        <Link to={back} className="chip self-start">Back to the group</Link>
+        <Link to={back} className="chip self-start">Back to Today</Link>
         {error ? (
           <>
             <p className="panel">Couldn't load Wrapped. {error}</p>

@@ -100,6 +100,17 @@ describe('groupWrapped', () => {
     expect(r2?.battleId).toBe('big')
   })
 
+  test('topOutfit ties go to the higher share, then the earliest', () => {
+    const lowShare = facts('2026-11-02', 'ana', 'ben', 5, 4, { id: 'lowShare' })
+    const highShare = facts('2026-11-03', 'cal', 'dee', 5, 1, { id: 'highShare' })
+    const t1 = groupWrapped({ ...input1, facts: [lowShare, highShare], comments: [] }).topOutfit
+    expect(t1?.battleId).toBe('highShare')
+    const early = facts('2026-11-02', 'ana', 'ben', 6, 3, { id: 'early' })
+    const late = facts('2026-11-03', 'cal', 'dee', 6, 3, { id: 'late' })
+    const t2 = groupWrapped({ ...input1, facts: [late, early], comments: [] }).topOutfit
+    expect(t2?.battleId).toBe('early')
+  })
+
   test('ghost is Dee with 1', () => {
     expect(w.ghost).toEqual({ profileId: 'dee', forfeits: 1 })
   })
@@ -203,5 +214,23 @@ describe('personalWrapped', () => {
       bestComment: null,
       votesReceived: 0,
     })
+  })
+
+  test('best outfit is chosen across groups', () => {
+    const p = personalWrapped('ben', '2026-11', groups)
+    // Ben's outfits: b1 4 votes, b4 4 votes (share .8), b6 2, n1 3 (share .75), n2 1. b4 wins on share.
+    expect(p.bestOutfit?.battleId).toBe('b4')
+  })
+
+  test('an Outfit of the Week awarded next month counts in its battle month', () => {
+    // Week of Mon 26 Oct to Sun 1 Nov: the battle is Wed 28 Oct, the award lands at Sun 1 Nov 00:00.
+    const edge = facts('2026-10-28', 'ana', 'ben', 4, 1, { id: 'edge' })
+    const g = [{ id: 'g3', name: 'Edge', input: { members: [ana, ben], facts: [edge], comments: [], now: NOW } }]
+    const oct = personalWrapped('ana', '2026-10', g)
+    expect(oct.record.points).toBe(5)
+    expect(oct.perGroup[0]).toMatchObject({ points: 5, rank: 1 })
+    const nov = personalWrapped('ana', '2026-11', g)
+    expect(nov.record.points).toBe(0)
+    expect(nov.perGroup).toEqual([])
   })
 })

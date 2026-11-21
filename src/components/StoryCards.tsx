@@ -47,11 +47,18 @@ export default function StoryCards({ cards, onClose }: { cards: StoryCard[]; onC
     [index, last, onClose],
   )
 
+  const [hidden, setHidden] = useState(() => document.hidden)
   useEffect(() => {
-    if (reduced || index >= last) return
+    const onVisibility = () => setHidden(document.hidden)
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => document.removeEventListener('visibilitychange', onVisibility)
+  }, [])
+
+  useEffect(() => {
+    if (reduced || hidden || index >= last) return
     const t = setTimeout(() => setIndex((n) => Math.min(last, n + 1)), ADVANCE_MS)
     return () => clearTimeout(t)
-  }, [index, last, reduced])
+  }, [index, last, reduced, hidden])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
