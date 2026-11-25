@@ -9,3 +9,6 @@ seed/photos/**
 !seed/photos/.gitkeep
 attachments/
 attachments*.zip
+
+# IDE settings
+.idea/
