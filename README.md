@@ -1,12 +1,39 @@
 # Fits
 
+🏆 **1st Place, Creative Tech track, KCL First Year Hack 2026**
+
+![Fits: 1v1 your friends in a fashion battle](assets/banner.png)
+
+[![1st Place](https://img.shields.io/badge/%F0%9F%8F%86_1st_Place-Creative_Tech_%C2%B7_First_Year_Hack_2026-D6FF4F?style=for-the-badge&labelColor=170B3B)](#fits)
+[![Live demo](https://img.shields.io/badge/Live_demo-Try_it-5B34F2?style=for-the-badge&logo=vercel&logoColor=white)](https://first-year-hack-green.vercel.app)
+
+![React](https://img.shields.io/badge/React_18-20232A?style=flat-square&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=flat-square&logo=supabase&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white)
+![PWA](https://img.shields.io/badge/PWA-5A0FC8?style=flat-square&logo=pwa&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
+
 **1v1 your friends in a fashion battle. Every day. All season.**
 
-Fits is an outfit-battle league for friend groups, built in a day at KCL First Year Hack 2026 (Creative Tech track). Every day the app pairs two people in your group. Both snap their fit with the in-app camera, everyone else votes side by side, and results feed an FPL-style league table. At the end of a season you get a Wrapped-style story recap.
+Fits is an outfit-battle league for friend groups, built in a day at KCL First Year Hack 2026, where it won **1st place in the Creative Tech track**. Every day the app pairs two people in your group. Both snap their fit with the in-app camera, everyone else votes side by side, and results feed an FPL-style league table. At the end of a season you get a Wrapped-style story recap.
 
-**Live:** https://first-year-hack-green.vercel.app
+We built it because group chats already argue about whose outfit is better. Fits turns that into a game with a score, a season and a reason to dress up every day.
+
+### 👉 [Try the live demo](https://first-year-hack-green.vercel.app) · [Jump straight into an example group](https://first-year-hack-green.vercel.app/j/fitcrew)
+
+Open it on your phone. No account is needed: pick a name and an emoji and you're in.
 
 > Tone rule: **roast the outfit, never the person.** All user text goes through a word filter, and comments and chat have a Report button.
+
+## Screenshots
+
+| Battle results | League table | Season Wrapped |
+|:---:|:---:|:---:|
+| <img src="assets/battle.png" width="230" alt="A finished battle: Michael beats Marcus 6–3 with both outfit photos side by side and comments below"> | <img src="assets/league.png" width="230" alt="League table with the top three on a podium and W–D–L, win % and points columns"><br><br><img src="assets/wrapped-champion.png" width="230" alt="Wrapped champion card: Dylan, 14 points"> | <img src="assets/wrapped.gif" width="230" alt="Animated Wrapped story: the numbers, champion, final table, closest battle, ghost award, most-voted fit, comment of the season"> |
 
 ## Features
 
@@ -23,13 +50,13 @@ Fits is an outfit-battle league for friend groups, built in a day at KCL First Y
 
 ## Tech stack
 
-| Layer | Choice |
-|---|---|
-| Frontend | Vite, React 18, TypeScript, react-router 6, Tailwind CSS 4 |
-| Backend | Supabase: Postgres with row-level security, anonymous auth, Storage |
-| Hosting | Vercel (SPA rewrites, auto-deploy from `main`) |
-| PWA | `vite-plugin-pwa` (auto-update service worker) |
-| Tests | Vitest (`TZ=Europe/London`) |
+| Category | Technologies | What it does in Fits |
+|---|---|---|
+| Frontend | Vite, React 18, TypeScript, react-router 6, Tailwind CSS 4 | The whole app: camera, voting, league table, Wrapped story cards |
+| Backend | Supabase: Postgres with row-level security, anonymous auth, Storage | Stores groups, battles and votes; enforces who can see and do what; holds outfit photos |
+| Hosting | Vercel | Serves the app, with SPA rewrites and auto-deploy from `main` |
+| PWA | `vite-plugin-pwa` | Makes it installable on a phone home screen and auto-updates it |
+| Tests | Vitest (`TZ=Europe/London`) | Unit tests for scoring, scheduling, the league table and Wrapped |
 
 ### Architecture in one paragraph
 
@@ -43,6 +70,8 @@ There's no server code of our own. The React app talks straight to Supabase. Rul
 
 ### 1. Install
 ```bash
+git clone https://github.com/sensei-wu08/First-Year-Hack.git
+cd First-Year-Hack
 npm ci
 ```
 
@@ -92,7 +121,7 @@ This creates "The Fit Crew": 8 members, a finished October season and a live Nov
 2. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` for Production and Preview.
 3. **Redeploy** after changing env vars. Vite bakes them in at build time.
 
-Every push to `main` deploys. Installed PWAs reload themselves when a new version lands, so **don't deploy during a live demo**.
+Every push to `main` deploys, except pushes that only touch docs (`README.md`, `assets/`, `docs/` and similar). `ignoreCommand` in `vercel.json` skips those builds. It also ignores a change to `vercel.json` on its own, so redeploy by hand after editing only that file. Installed PWAs reload themselves when a new version lands, so **don't deploy during a live demo**.
 
 ## Project structure
 ```
@@ -104,11 +133,23 @@ src/
   styles/theme.css   all styling and design tokens (single source of truth)
 supabase/migrations/ SQL, applied in order in the SQL Editor
 scripts/        seed.ts (demo data), make-icons.mjs (placeholder PWA icons)
+assets/         README screenshots, Wrapped GIF and the social preview banner
 docs/superpowers/    spec, implementation plan, design tokens + mockups
 ```
 
 ## Design
 The look is a "sticker-book bento": a violet canvas with chunky coloured tiles, a lime primary colour, and Unbounded with Plus Jakarta Sans. Tokens and mockups live in `docs/superpowers/design/`, and every colour and font comes from `src/styles/theme.css`.
+
+## Future improvements
+
+Ideas we scoped at the hackathon but didn't build:
+
+- **Battle Mode:** instant live 1v1s, challenges and spin-the-wheel matchups.
+- **Video fits:** clips of up to 10 seconds alongside photos.
+- **AI commentator:** a hype narrator for results, keeping to the tone rule.
+- **Weather-aware outfit ideas** from what's already in your wardrobe.
+- **Real push notifications** for match reveal, posting deadline and results (the demo shows a mock).
+- **Better scheduling for groups over 14**, and **comment likes** for "comment of the season".
 
 ## Team
 Michael Wu · Marcus Wong · Jae den Lim
