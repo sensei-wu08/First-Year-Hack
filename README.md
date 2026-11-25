@@ -121,7 +121,7 @@ This creates "The Fit Crew": 8 members, a finished October season and a live Nov
 2. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` for Production and Preview.
 3. **Redeploy** after changing env vars. Vite bakes them in at build time.
 
-Every push to `main` deploys. Installed PWAs reload themselves when a new version lands, so **don't deploy during a live demo**.
+Every push to `main` deploys, except pushes that only touch docs (`README.md`, `assets/`, `docs/` and similar). `ignoreCommand` in `vercel.json` skips those builds. It also ignores a change to `vercel.json` on its own, so redeploy by hand after editing only that file. Installed PWAs reload themselves when a new version lands, so **don't deploy during a live demo**.
 
 ## Project structure
 ```
